@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<head>
+    <script src="popup.js"></script>
+    <link rel="stylesheet" href="popup.css"/>
+</head>
+<html lang="en">
+  <body>
+  <h2 id="settingsHeader">Settings</h2>
+  <div id="checkboxOptions">
+    <label><input type="checkbox" id="collapseOnLoad">Collapse comments by default.</label>
+    <label><input type="checkbox" id="hideChildren">Auto-hide children for top-level comments.</label>
+    <label><input type="checkbox" id="includeNSFW">Include NSFW threads while logged out.</label>
+  </div><br>
+
+  <div id="defaultSort">
+    <label id="defaultSortLabel">Default comment sort:
+      <select id="defaultSortSelect">
+        <option id="bestSort" value="confidence">best</option>
+        <option id="topSort" value="top">top</option>
+        <option id="newSort" value="new">new</option>
+        <option id="controversialSort" value="controversial">controversial</option>
+        <option id="oldSort" value="old">old</option>
+        <option id="qaSort" value="qa">qa</option>
+      </select>
+    </label>
+  </div>
+
+  <h3 id="blacklistHeader">Blacklist subreddits:</h3>
+  <div id="input"><input type="text" id="blacklistInput"><button id="blacklistButton">Add</button><button id="clearButton">Clear</button></div>
+  <p id="inputError">Invalid input! Letters, numbers, and underscores only.</p>
+  <p id="duplicateError">Sub is already blacklisted!</p>
+  <div id="blacklist"></div><br>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+#inputError, #duplicateError {
+    color: red;
+    display: none;
+    word-wrap: normal;
+    max-width: inherit;
+}
+
+body {
+    position: relative;
+    vertical-align: middle;
+    font-family: sans-serif;
+}
+
+#blacklistInput {
+    flex: 1;
+}
+
+#input {
+    display: flex;
+}
+
+#checkboxOptions label {
+    display: block;
+}
+
+#support {
+  display: block;
+  font-size: large;
+  font-family: monospace;
+  text-align: center;
+  color: black;
+}
+
+#support:visited {
+  color: black;
+}
+
+.remove {
+    color: red;
+    cursor: pointer;
+}

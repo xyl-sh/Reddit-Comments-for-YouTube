@@ -1,0 +1,229 @@
+{
+  "extensionName": {
+    "message": "Reddit Comments for YouTube"
+  },
+  "extensionDescription": {
+    "message": "Improve your YouTube experience by adding a Reddit comment section to the site!"
+  },
+  "header": {
+    "message": "Reddit Comments"
+  },
+  "loadingThreads": {
+    "message": "Loading threads..."
+  },
+  "sortThreads": {
+    "message": "Sort:&nbsp;"
+  },
+  "loadingComments": {
+    "message": "Loading comments..."
+  },
+  "oneThread": {
+    "message": "1 thread"
+  },
+  "threadCount": {
+    "message": "$NUMBER$ threads",
+    "placeholders": {
+      "number":  {
+        "content": "$1"
+      }
+    }
+  },
+  "noThreads": {
+    "message": "No threads found."
+  },
+  "error": {
+    "message": "Error"
+  },
+  "internetError": {
+    "message": "Internet connection error. Please check your connection and reload the page."
+  },
+  "otherError": {
+    "message": "Unknown error loading Reddit content. It is possible that Reddit is down or something in the extension went wrong."
+  },
+  "threadTagline": {
+    "message": "submitted $TIME$ by <a href='https://www.reddit.com/user/$USER$' target='_blank'>$USER$</a> to <a id='rcfy-thread-subreddit' href='https://www.reddit.com/r/$SUBREDDIT$' target='_blank'>r/$SUBREDDIT$</a>",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      },
+      "user": {
+        "content": "$2"
+      },
+      "subreddit": {
+        "content": "$3"
+      }
+    }
+  },
+  "moreAwards": {
+    "message": "& $NUMBER$ more",
+    "placeholders": {
+      "number": {
+        "content": "$1"
+      }
+    }
+  },
+  "stickiedComment": {
+    "message": " - stickied comment"
+  },
+  "commentPoint": {
+    "message": "1 point"
+  },
+  "commentPoints": {
+    "message": "$POINTS$ points",
+    "placeholders": {
+      "points":  {
+        "content": "$1"
+      }
+    }
+  },
+  "commentThousandUnit": {
+    "message": "$NUMBER$k",
+    "placeholders": {
+      "number":  {
+        "content": "$1"
+      }
+    }
+  },
+  "commentScoreHidden": {
+    "message": "[score hidden]"
+  },
+  "commentEdited": {
+    "message": "last edited $TIME$",
+    "placeholders": {
+      "time":  {
+        "content": "$1"
+      }
+    }
+  },
+  "permalink": {
+    "message": "permalink"
+  },
+  "edit": {
+    "message": "edit"
+  },
+  "editFailed": {
+    "message": "failed to edit"
+  },
+  "delete": {
+    "message": "delete"
+  },
+  "confirmDelete": {
+    "message": "are you sure?  <span class='rcfy-confirm-delete-yes-button'>yes</span> / <span class='rcfy-confirm-delete-no-button'>no</span>"
+  },
+  "deleted": {
+    "message": "deleted"
+  },
+  "reply": {
+    "message": "reply"
+  },
+  "hideChildComments": {
+    "message": "hide child comments"
+  },
+  "showChildComments": {
+    "message": "show child comments"
+  },
+  "loadMoreComments": {
+    "message": "load more comments <span class='rcfy-load-more-count'>($COUNT$ more)</span>",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "loadingMoreComments": {
+    "message": "loading..."
+  },
+  "save": {
+    "message": "save"
+  },
+  "cancel": {
+    "message": "cancel"
+  },
+  "sortedBy": {
+    "message": "sorted by:"
+  },
+  "best": {
+    "message": "best"
+  },
+  "top": {
+    "message": "top"
+  },
+  "new": {
+    "message": "new"
+  },
+  "controversial": {
+    "message": "controversial"
+  },
+  "old": {
+    "message": "old"
+  },
+  "qa": {
+    "message": "q&a"
+  },
+  "timeJustNow": {
+    "message": "just now"
+  },
+  "timeSecondsAgo": {
+    "message": "$SECONDS$ seconds ago",
+    "placeholders": {
+      "seconds":  {
+        "content": "$1"
+      }
+    }
+  },
+  "timeMinuteAgo": {
+    "message": "1 minute ago"
+  },
+  "timeMinutesAgo": {
+    "message": "$MINUTES$ minutes ago",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "timeHourAgo": {
+    "message": "1 hour ago"
+  },
+  "timeHoursAgo": {
+    "message": "$HOURS$ hours ago",
+    "placeholders": {
+      "hours": {
+        "content": "$1"
+      }
+    }
+  },
+  "timeDayAgo": {
+    "message": "1 day ago"
+  },
+  "timeDaysAgo": {
+    "message": "$DAYS$ days ago",
+    "placeholders": {
+      "days": {
+        "content": "$1"
+      }
+    }
+  },
+  "timeMonthAgo": {
+    "message": "1 month ago"
+  },
+  "timeMonthsAgo": {
+    "message": "$MONTHS$ months ago",
+    "placeholders": {
+      "months": {
+        "content": "$1"
+      }
+    }
+  },
+  "timeYearAgo": {
+    "message": "1 year ago"
+  },
+  "timeYearsAgo": {
+    "message": "$YEARS$ years ago",
+    "placeholders": {
+      "years": {
+        "content": "$1"
+      }
+    }
+  }
+}
