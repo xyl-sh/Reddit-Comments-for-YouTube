@@ -14,7 +14,10 @@ chrome.runtime.onMessage.addListener(
       case "getThreads":
         let urls = [
           `https://api.reddit.com/search.json?limit=100&sort=top&q=url:${request.videoId}+site:youtu.be&include_over_18=${request.includeNSFW}`,
-          `https://api.reddit.com/search.json?limit=100&sort=top&q=url:${request.videoId}+site:youtube.com&include_over_18=${request.includeNSFW}`]
+          `https://api.reddit.com/search.json?limit=100&sort=top&q=url:${request.videoId}+site:youtube.com&include_over_18=${request.includeNSFW}`];
+        if (request.site === "NEBULA") {
+          urls = [`https://api.reddit.com/search.json?limit=100&sort=top&q=url:${request.videoId}&include_over_18=${request.includeNSFW}`];
+        }
         Promise.all(urls.map(url => getThread(url)))
         .then(promises => {
           const threads = [];
@@ -93,3 +96,13 @@ async function getThread(url) {
     }).catch((error) => reject(error))
   })
 }
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    chrome.tabs.sendMessage(tabId, {
+      message: "CHANGED",
+      url: changeInfo.url
+    })
+  }
+}
+);

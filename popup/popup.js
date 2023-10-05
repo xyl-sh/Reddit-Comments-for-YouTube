@@ -1,46 +1,25 @@
 let subredditPattern = new RegExp("^[a-zA-Z0-9_]+$");
 
+const optionsDefaults = {
+    "enableYouTube": true,
+    "enableNebula": true,
+    "collapseOnLoad": false,
+    "childrenHiddenDefault": false,
+    "includeNSFW": false
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    chrome.storage.sync.get({childrenHiddenDefault: "false"}, result => {
-        if (result.childrenHiddenDefault == "true") {
-          document.getElementById("hideChildren").checked = true;
+    document.querySelectorAll("#checkboxOptions input").forEach((checkbox) => {
+        let getJson = JSON.parse(`{"${checkbox.id}": "${optionsDefaults[checkbox.id]}"}`);
+        chrome.storage.sync.get(getJson, result => {
+            if (result[checkbox.id] == "true") {
+                checkbox.checked = true;
+            };
+          });
+        checkbox.onchange = () => {
+            let setJson = JSON.parse(`{"${checkbox.id}": "${checkbox.checked}"}`);
+            chrome.storage.sync.set(setJson);
         };
-      });
-    document.getElementById('hideChildren').onchange = () => {
-        if (document.getElementById('hideChildren').checked) {
-            chrome.storage.sync.set({childrenHiddenDefault: "true"});
-        }
-        else {
-            chrome.storage.sync.set({childrenHiddenDefault: "false"});
-        }
-    };
-
-    chrome.storage.sync.get({collapseOnLoad: "false"}, result => {
-        if (result.collapseOnLoad == "true") {
-            document.getElementById("collapseOnLoad").checked = true;
-        };
-      });
-      document.getElementById("collapseOnLoad").onchange = () => {
-            if (document.getElementById("collapseOnLoad").checked) {
-                chrome.storage.sync.set({collapseOnLoad: "true"});
-            }
-            else {
-                chrome.storage.sync.set({collapseOnLoad: "false"});
-            }
-    };
-
-    chrome.storage.sync.get({includeNSFW: "false"}, result => {
-        if (result.includeNSFW == "true") {
-            document.getElementById("includeNSFW").checked = true;
-        }
-        document.getElementById("includeNSFW").onchange = () => {
-            if (document.getElementById("includeNSFW").checked) {
-                chrome.storage.sync.set({includeNSFW: "true"});
-            }
-            else {
-                chrome.storage.sync.set({includeNSFW: "false"});
-            }
-        }
     })
 
     chrome.storage.sync.get({defaultSort: "top"}, result => {

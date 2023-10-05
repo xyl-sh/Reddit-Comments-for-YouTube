@@ -1,0 +1,26 @@
+html {
+    --primary-text: var(--font-color);
+    --secondary-text: #535556;
+    --link-text: #6FBCE6;
+    --subtle-link-text: var(--link-text);
+    --interactable-background: white;
+    --option-background: var(--interactable-background);
+    --interactable-border: 1px solid #D4D4D5;
+    --separator: #9999991A;
+    --container-margin: 30px 0;
+    --header-size: 17px;
+    --header-weight: 500;
+    --notice-size: 14px;
+    --notice-weight: 500;
+    --border-radius-small: 4px;
+    --border-radius-large: 8px;
+}
+
+html[data-theme='dark'] {
+    --secondary-text: #A1A4A6;
+    --interactable-background: #191F21;
+    --interactable-border: 1px solid #2E3335;
+    --separator: #5555551A;
+    --arrows: var(--dark-arrows);
+    --subtle-link-text: var(--secondary-text);
+}

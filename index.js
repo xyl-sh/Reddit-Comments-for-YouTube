@@ -2,6 +2,7 @@ let url;
 let modhash = "";
 let userId = "";
 let banned = false;
+let site;
 
 document.addEventListener("click", event => {
   let target = event.target;
@@ -76,7 +77,8 @@ function getThreads() {
   chrome.storage.sync.get({includeNSFW: "false"}, result => {
     chrome.runtime.sendMessage({
       id: "getThreads",
-      videoId: window.location.href.match(/(?:v=|shorts\/)([a-zA-Z0-9\-_]{11})/)[1],
+      site: site.name,
+      videoId: window.location.href.match(site.idRegex)[1],
       includeNSFW: result.includeNSFW == "true",
       url: url
     }, response => {
@@ -144,10 +146,8 @@ function parseTimestamp(timestamp) {
     if (timestamp.includes(":")) {
       let sections = timestamp.split(":");
       if (sections.length == 3) {
-        console.log("true")
         return (3600 * parseInt(sections[0])) + (60 * parseInt(sections[1])) + parseInt(sections[2]);
       } else {
-        console.log("false")
         return (60 * parseInt(sections[0])) + parseInt(sections[1]);
       }
     } else {
@@ -311,16 +311,15 @@ function createTextBox(isOp = false, isEdit = false, editText = "") {
 }
 
 function createTimeStamp(time, isComment) {
-  console.log(time)
   let hours = Math.floor(time / 3600);
   let remaining = time % 3600;
   let minutes = Math.floor(remaining / 60);
   let seconds = remaining % 60;
   let timestamp = `${hours > 0 ? hours + ":" + ("0" + minutes).slice(-2) : minutes}:${("0" + seconds).slice(-2)}`
   if (isComment) {
-    return `&lt;span class=\"rcfy-comment-timestamp\" onclick=\"document.getElementsByClassName('video-stream')[0].currentTime = ${time}\"&gt;[${timestamp}]&lt;/span&gt;`;
+    return `&lt;span class=\"rcfy-comment-timestamp\" onclick=\"document.querySelector('${site.videoPlayer}').currentTime = ${time}\"&gt;[${timestamp}]&lt;/span&gt;`;
   } else {
-    return `<span class="rcfy-title-timestamp-spacer"> -- </span> <span class="rcfy-title-timestamp" onclick="document.getElementsByClassName('video-stream')[0].currentTime = ${time}">[${timestamp}]</span>`;
+    return `<span class="rcfy-title-timestamp-spacer"> -- </span> <span class="rcfy-title-timestamp" onclick="document.querySelector('${site.videoPlayer}').currentTime = ${time}">[${timestamp}]</span>`;
   }
 }
 
@@ -380,7 +379,7 @@ function processComment(comment) {
     commentElement.content.querySelectorAll(".rcfy-comment-text a").forEach(item => {
       item.target = "_blank"
     })
-    commentElement.content.querySelectorAll(`.rcfy-comment-text a[href*="${window.location.href.match(/(?:v=|shorts\/)([a-zA-Z0-9\-_]{11})/)[1]}"]`).forEach(item => {
+    commentElement.content.querySelectorAll(`.rcfy-comment-text a[href*="${window.location.href.match(site.idRegex)[1]}"]`).forEach(item => {
       if (time = new URL(item.href).searchParams.get("t")) {
         item.outerHTML = `${!item.textContent.match(/((?:^|\[)[0-5]?\d(?::[0-5]?\d){1,2}(?:$|\])|\?t=\d+)/g) ? item.textContent : ""} ${new DOMParser().parseFromString(createTimeStamp(parseTimestamp(time), true), "text/html").body.textContent}`;
       }
@@ -573,9 +572,9 @@ function timestampToRelativeTime(timestamp) {
 }
 
 async function getCommentsForVideo(videoUrl) {
-  return document.getElementById("comments") || new Promise(resolve => {
+  return document.querySelector(site.anchorElement) || new Promise(resolve => {
     const intervalId = setInterval(() => {
-      const comments = document.getElementById("comments");
+      const comments = document.querySelector(site.anchorElement);
       if(videoUrl !== window.location.href){
         clearInterval(intervalId);
         resolve(null);
@@ -589,7 +588,8 @@ async function getCommentsForVideo(videoUrl) {
 }
 
 async function update() {
-  if (window.location.href === url || !window.location.href.match(/(v=|shorts\/)[a-zA-Z0-9\-_]{11}/)) {
+  if (window.location.href === url || !window.location.href.match(site.idRegex)) {
+    url = "";
     return;
   }
   url = window.location.href;
@@ -599,13 +599,13 @@ async function update() {
       rcfyContainer.remove();
     }
     chrome.storage.sync.get({collapseOnLoad: "false"}, result => {
-      comments.insertAdjacentHTML("beforebegin", `
+      comments.insertAdjacentHTML(site.anchorType, `
       <div id="rcfy-container" class="rcfy-logged-out ${result.collapseOnLoad == "true" ? "rcfy-collapsed" : ""}">
         <div id="rcfy-header">
           <h2><span id="rcfy-thread-expander" onclick="document.getElementById('rcfy-container').classList.toggle('rcfy-collapsed')"></span>&nbsp;${chrome.i18n.getMessage("header")}</h2>
           <h2 id="rcfy-thread-status">${chrome.i18n.getMessage("loadingThreads")}</h2>
           <div id="rcfy-thread-sorter" class="rcfy-thread-sorter-hidden">
-            <h2>&nbsp;${chrome.i18n.getMessage("sortThreads")}</h2>
+            <h2>${chrome.i18n.getMessage("sortThreads")}</h2>
               <select id="rcfy-thread-sorter-select">
                 <option value="votes">Score</option>
                 <option value="comments">Comments</option>
@@ -621,6 +621,46 @@ async function update() {
   }
 };
 
-document.addEventListener("DOMContentLoaded", () => update());
-document.addEventListener("yt-navigate-finish", () => update());
-document.addEventListener("spfdone", () => update());
+async function init() {
+  if (window.location.hostname === "www.youtube.com") {
+    chrome.storage.sync.get({enableYouTube: "true"}, result => {
+      if (result.enableYouTube !== "true") {
+        return;
+      }
+
+      site = {
+        name: "YOUTUBE",
+        idRegex: /(?:v=|shorts\/)([a-zA-Z0-9\-_]{11})/,
+        anchorElement: "#comments",
+        anchorType: "beforebegin",
+        videoPlayer: ".video-stream"
+      };
+      document.addEventListener("yt-navigate-finish", () => update());
+      document.addEventListener("spfdone", () => update());
+      document.addEventListener("DOMContentLoaded", () => update());
+    });
+  } else if (window.location.hostname === "nebula.tv") {
+    chrome.storage.sync.get({enableNebula: "true"}, result => {
+      if (result.enableNebula !== "true") {
+        return;
+      }
+
+      site = {
+        name: "NEBULA",
+        idRegex: /(videos\/.*)/,
+        anchorElement: "section[aria-label='video description']",
+        anchorType: "beforeend",
+        videoPlayer: "#video-player video"
+      };
+      document.addEventListener("DOMContentLoaded", () => update());
+      chrome.runtime.onMessage.addListener(
+        (request) => {
+          if (request.message === "CHANGED") {
+            update();
+          }
+      });
+    });
+  }
+}
+
+init();
