@@ -182,13 +182,14 @@ function getMe() {
 }
 
 function getThreads() {
-  chrome.storage.sync.get({includeNSFW: "false"}, result => {
+  chrome.storage.sync.get({includeNSFW: "false", enableTitleSearch: "false"}, result => {
     chrome.runtime.sendMessage({
       id: "getThreads",
       site: site.name,
       videoId: window.location.href.match(site.idRegex)[1],
       includeNSFW: result.includeNSFW == "true",
-      url: url
+      url: url,
+      title: (site.name !== "YOUTUBE" && result.enableTitleSearch === "true") ? document.querySelector(site.titleElement).textContent : ""
     }, response => {
       const threads = response.response;
       if (threads) {
@@ -755,7 +756,8 @@ async function init() {
         idRegex: /(?:v=|shorts\/)([a-zA-Z0-9\-_]{11})/,
         anchorElement: "#comments",
         anchorType: "beforebegin",
-        videoPlayer: ".video-stream"
+        videoPlayer: ".video-stream",
+        titleElement: "h1.ytd-watch-metadata yt-formatted-string"
       };
       document.addEventListener("yt-navigate-finish", () => update());
       document.addEventListener("spfdone", () => update());
@@ -772,7 +774,8 @@ async function init() {
         idRegex: /(videos\/.*)/,
         anchorElement: "section[aria-label='video description']",
         anchorType: "beforeend",
-        videoPlayer: "#video-player video"
+        videoPlayer: "#video-player video",
+        titleElement: "[aria-label='video description'] h1"
       };
       document.addEventListener("DOMContentLoaded", () => update());
       chrome.runtime.onMessage.addListener(

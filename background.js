@@ -18,6 +18,11 @@ chrome.runtime.onMessage.addListener(
         if (request.site === "NEBULA") {
           urls = [`https://api.reddit.com/search.json?limit=100&sort=top&q=url:${request.videoId}&include_over_18=${request.includeNSFW}`];
         }
+        if (!!request.title) {
+          urls.push(`https://api.reddit.com/search.json?limit=100&sort=top&q=title:'${request.title}'+site:youtu.be&include_over_18=${request.includeNSFW}`,
+          `https://api.reddit.com/search.json?limit=100&sort=top&q=title:'${request.title}'+site:youtube.com&include_over_18=${request.includeNSFW}`)
+        }
+
         Promise.all(urls.map(url => getThread(url)))
         .then(promises => {
           const threads = [];

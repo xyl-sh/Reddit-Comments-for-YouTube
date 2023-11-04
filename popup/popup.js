@@ -3,6 +3,7 @@ let subredditPattern = new RegExp("^[a-zA-Z0-9_]+$");
 const optionsDefaults = {
     "enableYouTube": true,
     "enableNebula": true,
+    "enableTitleSearch": true,
     "collapseOnLoad": false,
     "childrenHiddenDefault": false,
     "includeNSFW": false
