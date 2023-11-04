@@ -140,7 +140,7 @@
     "message": "cancel"
   },
   "sortedBy": {
-    "message": "sorted by:"
+    "message": "sorted by:&nbsp;"
   },
   "best": {
     "message": "best"

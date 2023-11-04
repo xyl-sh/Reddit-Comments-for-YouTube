@@ -2,11 +2,21 @@ let url;
 let modhash = "";
 let userId = "";
 let banned = false;
+let sortingValue;
 let site;
 
 document.addEventListener("click", event => {
   let target = event.target;
-  if (target.matches(".rcfy-load-more-button:not(.rcfy-loading-more), .rcfy-load-more-button:not(.rcfy-loading-more) .rcfy-load-more-count")) {
+
+  document.querySelectorAll(".rcfy-select-shown").forEach((element) => {
+    if (target.closest(".rcfy-select") != element || target.classList.contains("rcfy-select-option")) {
+      element.classList.remove("rcfy-select-shown");
+    }
+  });
+
+  if (target.closest(".rcfy-select-button-container")) {
+    target.closest(".rcfy-select").classList.toggle("rcfy-select-shown");
+  } else if (target.matches(".rcfy-load-more-button:not(.rcfy-loading-more), .rcfy-load-more-button:not(.rcfy-loading-more) .rcfy-load-more-count")) {
     getMoreComments(target.classList.contains("rcfy-load-more-count") ? target.parentNode : target);
   } else if (target.classList.contains("rcfy-arrow")) {
     vote(target);
@@ -43,16 +53,114 @@ document.addEventListener("click", event => {
     target.closest(".rcfy-comment").classList.toggle("rcfy-collapsed");
   } else if (target.classList.contains("rcfy-spoiler")) {
     target.classList.add("rcfy-spoiler-revealed");
+  } else if (target.matches("#rcfy-thread-sorter-select .rcfy-select-option")) {
+    sortThreads(target.getAttribute("value"));
+  } else if (target.matches("#rcfy-thread-selector .rcfy-select-option")) {
+    chrome.storage.sync.get({defaultSort: "top"}, result => {
+      getComments(target, result.defaultSort);
+    });
   }
-})
+});
 
 document.addEventListener("keydown", event => {
-  if (event.target.classList.contains("rcfy-textarea")) {
+  let target = event.target;
+
+  if (target.classList.contains("rcfy-textarea")) {
     if (event.key == "Enter" && (event.ctrlKey || event.metaKey)) {
-      event.target.parentNode.querySelector(".rcfy-save-button").click();
+      target.parentNode.querySelector(".rcfy-save-button").click();
+    }
+  }
+
+  if (target.matches(".rcfy-select.rcfy-populated") && ["ArrowUp", "ArrowDown", " ", "Enter", "Escape"].includes(event.key)) {
+    event.preventDefault();
+    event.stopPropagation();
+    let button = target.querySelector(".rcfy-select-button");
+    if ([" ", "Enter"].includes(event.key)) {
+      button.click();
+    }
+
+    if (event.key === "Escape") {
+      target.classList.remove("rcfy-select-shown");
+    }
+
+    if (target.classList.contains("rcfy-select-shown") && event.key == "ArrowDown") {
+      target.querySelector(".rcfy-select-option").focus();
+      return;
+    }
+
+
+    let selectedOption = target.querySelector(`.rcfy-select-option[value='${button.getAttribute("value")}']`);
+    if (selectedOption.nextElementSibling && event.key == "ArrowDown") {
+      selectedOption.nextElementSibling.click();
+    } else if (selectedOption.previousElementSibling && event.key == "ArrowUp") {
+      selectedOption.previousElementSibling.click();
+    }
+  }
+
+  if (target.matches(".rcfy-select-option") && ["ArrowUp", "ArrowDown", " ", "Enter", "Escape"].includes(event.key)) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if ([" ", "Enter"].includes(event.key)) {
+      target.closest(".rcfy-select").classList.remove("rcfy-select-shown");
+      target.click();
+    }
+
+    if (event.key === "Escape") {
+      target.closest(".rcfy-select").classList.remove("rcfy-select-shown");
+      target.closest(".rcfy-select").focus();
+    }
+
+    if (target.nextElementSibling && event.key == "ArrowDown") {
+      target.nextElementSibling.focus();
+    } else if (target.previousElementSibling && event.key == "ArrowUp") {
+      target.previousElementSibling.focus();
     }
   }
 });
+
+document.addEventListener("mouseover", event => {
+  let target = event.target;
+  
+  if (target.matches(".rcfy-select-option")) {
+    target.focus();
+  }
+})
+
+function generateSelect(id, options) {
+  let optionsString = ``;
+  options.forEach((o) => {
+    attributesString = "";
+    for (key in o.attributes) {
+      attributesString += `${key}="${o.attributes[key]}" `;
+    }
+    optionsString += `<div class="rcfy-select-option" ${attributesString}tabindex="-1">${o.name}</div>`;
+  });
+  return `
+    <div id="${id}" class="rcfy-select" tabindex="0">
+      <div class="rcfy-select-button-container">
+        <div class="rcfy-select-arrow">╲╱</div>
+      </div>
+      <div class="rcfy-select-dropdown">
+        ${optionsString}
+      </div>
+    </div>
+  `;
+}
+
+function populateSelect(selectId, value) {
+  let select = document.getElementById(selectId);
+  let longest = -1;
+  select.querySelectorAll(".rcfy-select-dropdown").forEach((e) => {
+    let width = e.getBoundingClientRect().width;
+    if (width > longest) {
+      longest = width;
+    }
+  });
+  let first = select.querySelector(`.rcfy-select-option[value='${value}']`) || select.querySelector(".rcfy-select-option");
+  select.querySelector(".rcfy-select-button-container").insertAdjacentHTML("afterbegin", `<div class="rcfy-select-button" style="width: ${longest}px" value="${first.getAttribute("value")}">${first.textContent}</div>`);
+  select.classList.add("rcfy-populated");
+}
 
 function displayError(threads = false) {
   if (threads) {
@@ -95,14 +203,19 @@ function getThreads() {
   })
 }
 
-function sortThreads() {
-  let sort = document.getElementById("rcfy-thread-sorter-select").querySelector("option:checked").value;
-  let threads = document.getElementById("rcfy-thread-selector");
+function sortThreads(sort) {
+  let sortOption = document.querySelector(`#rcfy-thread-sorter-select .rcfy-select-option[value='${sort}']`);
+  sortingValue = sortOption.getAttribute("value");
+  let button = document.querySelector(`#rcfy-thread-sorter-select .rcfy-select-button`);
+  button.setAttribute("value", sortOption.getAttribute("value"));
+  button.textContent = sortOption.textContent;
+
+  let threads = document.querySelector("#rcfy-thread-selector .rcfy-select-dropdown");
   if (localStorage) {
     localStorage.setItem('lastSort', sort);
   }
-  let threadList = Array.from(threads.querySelectorAll('option'));
-  let oldThread = threads.querySelector("option:checked").getAttribute("value");
+  let threadList = Array.from(threads.querySelectorAll('.rcfy-select-option'));
+  let oldThread = document.querySelector("#rcfy-thread-selector .rcfy-select-button").getAttribute("value");
   threadList.sort((a, b) => {
     let conda, condb;
     switch(sort) {
@@ -136,8 +249,13 @@ function sortThreads() {
     threads.append(item);
   })
   threads.selectedIndex = 0;
-  if (oldThread != threads.querySelector("option:checked").value || !document.getElementById("rcfy-thread")) {
-    threads.onchange();
+  let newThread = threads.querySelector(".rcfy-select-option");
+  if (oldThread != newThread.getAttribute("value") || !document.getElementById("rcfy-thread")) {
+    chrome.storage.sync.get({defaultSort: "top"}, result => {
+      if (sortingValue == sortOption.getAttribute("value")) {
+        getComments(newThread, result.defaultSort);
+      }
+    });
   }
 }
 
@@ -180,18 +298,12 @@ function setupThreadSelector(threads) {
     if (localStorage && localStorage.getItem('lastSort')) {
       threadSort = localStorage.getItem('lastSort');
     }
-    document.getElementById("rcfy-thread-sorter").classList.remove("rcfy-thread-sorter-hidden");
-    document.getElementById("rcfy-thread-sorter-select").value = threadSort;
-    let threadSelectorString = "<select id='rcfy-thread-selector'>";
+    let threadList = [];
     threads.forEach(thread => {
       const threadData = thread.data;
       const subreddit = "r/" + threadData.subreddit;
       // &#8679; is an upvote symbol, &#128172; is a comment symbol
       const prefix = `${subreddit}, ${threadData.score}&#8679;, ${threadData.num_comments}&#128172;`;
-      // Add in a dynamic number of spaces so that all the video titles line up
-      const spaces = "&nbsp".repeat(52 - prefix.length);
-      // Chop off titles that are too long to fit on screen:
-      const title = threadData.title.length < 65 ? threadData.title : threadData.title.slice(0, 60) + "...";
 
       let url = new URL(threadData.url.replace("&amp;", "&"));
       let linkedTimestamp = url.searchParams.get("t");
@@ -202,39 +314,42 @@ function setupThreadSelector(threads) {
         linkedTimestamp = "";
       }
 
-      threadSelectorString += `<option
-        value="${threadData.id}"
-        title="${threadData.title.replace(/\"/g,'&quot;')}"
-        timestamp="${linkedTimestamp}"
-        subreddit="${threadData.subreddit}"
-        votes=${threadData.score}
-        created=${threadData.created}
-        comments=${threadData.num_comments}
-        >${prefix}${spaces} ${title}</option>`;
+      const title = `${prefix}\r\n${threadData.title}`;
+      const attributes = {
+        value: threadData.id,
+        title: threadData.title.replace(/\"/g,'&quot;'),
+        timestamp: linkedTimestamp,
+        subreddit: threadData.subreddit,
+        votes: threadData.score,
+        created: threadData.created,
+        comments: threadData.num_comments
+      }
+
+      threadList.push({name: title, attributes: attributes});
     });
-    threadSelectorString += "</select>"
+    const threadSelectorString = generateSelect("rcfy-thread-selector", threadList);
     if (document.getElementById("rcfy-thread-selector")) return;
     document.getElementById("rcfy-header").insertAdjacentHTML("afterend", threadSelectorString)
-    let threadSelector = document.getElementById("rcfy-thread-selector");
-    threadSelector.onchange = () => {
-      chrome.storage.sync.get({defaultSort: "top"}, result => {
-        getCommments(threadSelector.querySelector("option:checked"), result.defaultSort);
-      });
-    };
-    sortThreads();
+    populateSelect("rcfy-thread-selector");
+    sortThreads(threadSort);
+    document.getElementById("rcfy-thread-sorter").classList.remove("rcfy-thread-sorter-hidden");
   }
-  document.getElementById("rcfy-thread-sorter-select").onchange = () => {sortThreads()}
   document.getElementById("rcfy-thread-status").textContent = threads.length == 1 ? chrome.i18n.getMessage("oneThread") : chrome.i18n.getMessage("threadCount", [threads.length])
 }
 
-function getCommments(selector, sort) {
+function getComments(selector, sort) {
+  let threadId = selector.getAttribute("value");
+  let option = document.querySelector(`#rcfy-thread-selector .rcfy-select-option[value='${threadId}']`);
+  let button = document.querySelector(`#rcfy-thread-selector .rcfy-select-button`);
+  button.setAttribute("value", option.getAttribute("value"));
+  button.textContent = option.textContent;
+
   let rcfyNotice = document.getElementById("rcfy-notice");
   rcfyNotice.textContent = chrome.i18n.getMessage("loadingComments");
   rcfyNotice.classList.remove("rcfy-notice-hidden");
   if (thread = document.getElementById("rcfy-thread")) {
     thread.remove()
   }
-  let threadId = selector.value;
   chrome.runtime.sendMessage({id: "getSub", subreddit: selector.getAttribute("subreddit")}, subredditResponse => {
     banned = subredditResponse.response.data.user_is_banned;
     chrome.runtime.sendMessage({id: "setupComments", threadId: threadId, sort: sort, url: url}, response => {
@@ -243,6 +358,14 @@ function getCommments(selector, sort) {
         let thread = response.response[0].data.children[0];
         let threadElement = document.createElement("template");
         let scores = getScores(thread);
+        let sortOptions = [
+          {name: chrome.i18n.getMessage("best"), attributes: {value: "confidence"}},
+          {name: chrome.i18n.getMessage("top"), attributes: {value: "top"}},
+          {name: chrome.i18n.getMessage("new"), attributes: {value: "new"}},
+          {name: chrome.i18n.getMessage("controversial"), attributes: {value: "controversial"}},
+          {name: chrome.i18n.getMessage("old"), attributes: {value: "old"}},
+          {name: chrome.i18n.getMessage("qa"), attributes: {value: "qa"}}
+        ];
         threadElement.innerHTML = `<div id="rcfy-thread" rcfy-is-archived="${thread.data.archived}" rcfy-fullname="${thread.data.name}">
           <div id="rcfy-thread-header" class="${getVotedClass(thread.data.likes)}" rcfy-fullname="${thread.data.name}">
             <div id="rcfy-thread-arrows">
@@ -257,14 +380,7 @@ function getCommments(selector, sort) {
           </div>
           <div id="rcfy-sort-comments">
             <span>${chrome.i18n.getMessage("sortedBy")}</span>
-            <select id="rcfy-sort-comments-selector" value="${sort}">
-              <option value="confidence">${chrome.i18n.getMessage("best")}</option>
-              <option value="top">${chrome.i18n.getMessage("top")}</option>
-              <option value="new">${chrome.i18n.getMessage("new")}</option>
-              <option value="controversial">${chrome.i18n.getMessage("controversial")}</option>
-              <option value="old">${chrome.i18n.getMessage("old")}</option>
-              <option value="qa">${chrome.i18n.getMessage("qa")}</option>
-            </select>
+            ${generateSelect("rcfy-sort-comments-selector", sortOptions)}
           </div>
           ${modhash != "" && !thread.data.archived && !thread.data.locked && !banned ? createTextBox(true) : ""}
           <div id="rcfy-comments"></div></div>`
@@ -273,11 +389,11 @@ function getCommments(selector, sort) {
           threadElement.content.querySelector("#rcfy-comments").appendChild(processComment(item));
         })
 
-        let commentSortSelector = threadElement.content.querySelector("#rcfy-sort-comments-selector");
-        commentSortSelector.value = sort;
-        commentSortSelector.onchange = () => {
-          getCommments(selector, commentSortSelector.querySelector("option:checked").value);
-        }
+        threadElement.content.querySelectorAll("#rcfy-sort-comments-selector .rcfy-select-option").forEach((element) => {
+          element.addEventListener("click", () => {
+            getComments(selector, element.getAttribute("value"));
+          });
+        });
 
         chrome.storage.sync.get({childrenHiddenDefault: "false"}, result => {
             if (result.childrenHiddenDefault == "true") {
@@ -288,8 +404,12 @@ function getCommments(selector, sort) {
                 }
               });
             }
-            document.getElementById("rcfy-notice").classList.add("rcfy-notice-hidden");
-            document.getElementById("rcfy-container").appendChild(threadElement.content);
+            if (document.querySelector("#rcfy-thread-selector .rcfy-select-button").getAttribute("value") ==  threadId) {
+              document.getElementById("rcfy-notice").classList.add("rcfy-notice-hidden");
+              document.querySelectorAll("#rcfy-thread").forEach((e) => e.remove());
+              document.getElementById("rcfy-container").appendChild(threadElement.content);
+              populateSelect("rcfy-sort-comments-selector", sort);
+            }
         })
       } else {
         displayError();
@@ -599,6 +719,12 @@ async function update() {
       rcfyContainer.remove();
     }
     chrome.storage.sync.get({collapseOnLoad: "false"}, result => {
+      let sortOptions = [
+        {name: "Score", attributes: {value: "votes"}},
+        {name: "Comments", attributes: {value: "comments"}},
+        {name: "Subreddit", attributes: {value: "subreddit"}},
+        {name: "Newest", attributes: {value: "newest"}}
+      ];
       comments.insertAdjacentHTML(site.anchorType, `
       <div id="rcfy-container" class="rcfy-logged-out ${result.collapseOnLoad == "true" ? "rcfy-collapsed" : ""}">
         <div id="rcfy-header">
@@ -606,16 +732,12 @@ async function update() {
           <h2 id="rcfy-thread-status">${chrome.i18n.getMessage("loadingThreads")}</h2>
           <div id="rcfy-thread-sorter" class="rcfy-thread-sorter-hidden">
             <h2>${chrome.i18n.getMessage("sortThreads")}</h2>
-              <select id="rcfy-thread-sorter-select">
-                <option value="votes">Score</option>
-                <option value="comments">Comments</option>
-                <option value="subreddit">Subreddit</option>
-                <option value="newest">Newest</option>
-              </select>
+            ${generateSelect("rcfy-thread-sorter-select", sortOptions)}
           </div>
         </div>
         <h3 id="rcfy-notice" class="rcfy-notice-hidden"></h3>
       </div>`);
+      populateSelect("rcfy-thread-sorter-select");
       getMe();
     })
   }
