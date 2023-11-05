@@ -18,9 +18,10 @@ chrome.runtime.onMessage.addListener(
         if (request.site === "NEBULA") {
           urls = [`https://api.reddit.com/search.json?limit=100&sort=top&q=url:${request.videoId}&include_over_18=${request.includeNSFW}`];
         }
-        if (!!request.title) {
-          urls.push(`https://api.reddit.com/search.json?limit=100&sort=top&q=title:'${request.title}'+site:youtu.be&include_over_18=${request.includeNSFW}`,
-          `https://api.reddit.com/search.json?limit=100&sort=top&q=title:'${request.title}'+site:youtube.com&include_over_18=${request.includeNSFW}`)
+
+        if (!!request.youtubeId) {
+          urls.push(`https://api.reddit.com/search.json?limit=100&sort=top&q=url:${request.youtubeId}+site:youtu.be&include_over_18=${request.includeNSFW}`,
+          `https://api.reddit.com/search.json?limit=100&sort=top&q=url:${request.youtubeId}+site:youtube.com&include_over_18=${request.includeNSFW}`)
         }
 
         Promise.all(urls.map(url => getThread(url)))
@@ -78,10 +79,47 @@ chrome.runtime.onMessage.addListener(
           body: formData
         }).then(response => response.json()).then(json => sendResponse({response: json}));
         break;
+
+      case "getYouTubeClientInfo":
+        fetch("https://www.youtube.com/sw.js").then(response => response.text()).then(text => sendResponse({response: text}));
+        break;
+
+      case "getNebulaCreators":
+        fetch("https://talent.nebula.tv/creators/").then(response => response.text()).then(text => sendResponse({response: text}));
+        break;
+
+      case "searchYouTube":
+        if (request.channel) {
+          fetch(`https://www.youtube.com/channel/${request.channel}/search?query=${request.title}&themeRefresh=1`)
+          .then(response => response.text())
+          .then(text => {
+            let json = JSON.parse(text.split(">var ytInitialData = ")[1].split(";</script>")[0]);
+            let results = json.contents.twoColumnBrowseResultsRenderer.tabs.find(t => t.expandableTabRenderer?.selected).expandableTabRenderer.content.sectionListRenderer.contents.filter(r => r.itemSectionRenderer && r.itemSectionRenderer.contents[0].videoRenderer).map(r => ({
+              videoId: r.itemSectionRenderer.contents[0].videoRenderer.videoId,
+              title: r.itemSectionRenderer.contents[0].videoRenderer.title.runs[0].text,
+              channel: r.itemSectionRenderer.contents[0].videoRenderer.longBylineText.runs[0].text
+            }));
+            sendResponse({response: results});
+          });
+        } else {
+          fetch(`https://www.youtube.com/results?search_query=${request.title}&themeRefresh=1`)
+          .then(response => response.text())
+          .then(text => {
+            let json = JSON.parse(text.split(">var ytInitialData = ")[1].split(";</script>")[0]);
+            let results = json.contents.twoColumnSearchResultsRenderer.primaryContents.sectionListRenderer.contents[0].itemSectionRenderer.contents.filter(r => r.videoRenderer).map(r => ({
+              videoId: r.videoRenderer.videoId,
+              title: r.videoRenderer.title.runs[0].text,
+              channel: r.videoRenderer.longBylineText.runs[0].text
+            }));
+            sendResponse({response: results});
+          });
+        }
+
+        break;
+      }
+      return true;
     }
-    return true;
-  }
-);
+  );
 
 async function getThread(url) {
   return new Promise ((resolve, reject) => {

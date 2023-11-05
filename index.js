@@ -1,9 +1,12 @@
 let url;
+let youtubeId;
 let modhash = "";
 let userId = "";
 let banned = false;
 let sortingValue;
 let site;
+let nebulaMapping;
+let youtubeClient;
 
 document.addEventListener("click", event => {
   let target = event.target;
@@ -182,26 +185,34 @@ function getMe() {
 }
 
 function getThreads() {
-  chrome.storage.sync.get({includeNSFW: "false", enableTitleSearch: "false"}, result => {
-    chrome.runtime.sendMessage({
-      id: "getThreads",
-      site: site.name,
-      videoId: window.location.href.match(site.idRegex)[1],
-      includeNSFW: result.includeNSFW == "true",
-      url: url,
-      title: (site.name !== "YOUTUBE" && result.enableTitleSearch === "true") ? document.querySelector(site.titleElement).textContent : ""
-    }, response => {
-      const threads = response.response;
-      if (threads) {
-        if (response.url != url) return;
-        chrome.storage.sync.get({subBlacklist: []}, function(result) {
-          setupThreadSelector(threads.filter(t => !t.data.promoted).filter(t => !result.subBlacklist.includes(t.data.subreddit.toLowerCase())));
-        });
-      } else {
-        displayError(true);
+  chrome.storage.sync.get({includeNSFW: "false", enableTitleSearch: "true"}, result => {
+    let interval = setInterval(() => {
+      if (site.name !== "YOUTUBE" && result.enableTitleSearch === "true" && youtubeId === undefined) {
+        return;
       }
-    })
-  })
+      console.log(`YouTube ID: ${youtubeId}`);
+      clearInterval(interval);
+
+      chrome.runtime.sendMessage({
+        id: "getThreads",
+        site: site.name,
+        videoId: window.location.href.match(site.idRegex)[1],
+        includeNSFW: result.includeNSFW == "true",
+        url: url,
+        youtubeId: result.enableTitleSearch === "true" ? youtubeId : ""
+      }, response => {
+        const threads = response.response;
+        if (threads) {
+          if (response.url != url) return;
+          chrome.storage.sync.get({subBlacklist: []}, function(result) {
+            setupThreadSelector(threads.filter(t => !t.data.promoted).filter(t => !result.subBlacklist.includes(t.data.subreddit.toLowerCase())));
+          });
+        } else {
+          displayError(true);
+        }
+      });
+    });
+  });
 }
 
 function sortThreads(sort) {
@@ -711,11 +722,17 @@ async function getCommentsForVideo(videoUrl) {
 async function update() {
   if (window.location.href === url || !window.location.href.match(site.idRegex)) {
     url = "";
+    youtubeId = undefined;
     return;
   }
+  
   url = window.location.href;
+  youtubeId = undefined;
   const comments = await getCommentsForVideo(url)
   if (comments) {
+    if (site.name === "NEBULA") {
+      nebulaSetup();
+    }
     if (rcfyContainer = document.getElementById("rcfy-container")) {
       rcfyContainer.remove();
     }
@@ -743,6 +760,80 @@ async function update() {
     })
   }
 };
+
+async function nebulaSetup() {
+  chrome.storage.local.get({youtubeInfo: {}}, result => {
+    if (result.youtubeInfo.lastUpdated && (Date.now() - result.youtubeInfo.lastUpdated) > 86400000) {
+      youtubeClient = result.youtubeInfo.client;
+    } else {
+      chrome.runtime.sendMessage({id: "getYouTubeClientInfo"}, response => {
+        youtubeClient = {
+          clientVersion: response.response.match(/(?:"INNERTUBE_CLIENT_VERSION":")([\d.]*?)(?:")/)[1],
+          apiKey: response.response.match(/(?:"INNERTUBE_API_KEY":")(.*?)(?:")/)[1]
+        };
+        chrome.storage.local.set({youtubeInfo: {"lastUpdated": Date.now(), "client": youtubeClient}});
+      });
+    }
+  });
+  chrome.storage.local.get({nebulaMap: {}}, result => {
+    if (result.nebulaMap.lastUpdated && (Date.now() - result.nebulaMap.lastUpdated) > 86400000) {
+      nebulaMapping = result.mapping;
+    } else {
+      chrome.runtime.sendMessage({id: "getNebulaCreators"}, response => {
+        let template = document.createElement("template");
+        template.innerHTML = response.response;
+        nebulaMapping = [...template.content.querySelectorAll(".grid-item.youtube-creator")].map(c => ({
+          nebulaChannel: c.querySelector("a.link.nebula, .channel-header h3 a")?.href?.split("/")[3],
+          youtubeChannel: c.getAttribute("data-video")
+        }));
+        chrome.storage.local.set({nebulaMap: {"lastUpdated": Date.now(), "mapping": nebulaMapping}});
+      });
+    }
+  });
+
+  let interval = setInterval(() => {
+    function compareStrings(s1, s2) {
+      s1 = s1.replace(/[^a-zA-Z0-9]+/g, "").toLowerCase();
+      s2 = s2.replace(/[^a-zA-Z0-9]+/g, "").toLowerCase();
+      return (s1.includes(s2) || s2.includes(s1));
+    }
+
+    if (!youtubeClient || !nebulaMapping) {
+      return;
+    }
+
+    clearInterval(interval);
+    let user = document.querySelector("[aria-label='video description'] a").href.split("/").pop();
+    let channel = nebulaMapping.find(e => e.nebulaChannel === user)?.youtubeChannel;
+    if (document.querySelector("[aria-label='video description'] img[alt='Nebula Original'], [aria-label='video description'] img[alt='Nebula Plus']")) {
+      youtubeId = "";
+      return;
+    }
+
+    let title = document.querySelector(site.titleElement).textContent;
+    let username = document.querySelector(site.usernameElement).textContent;
+
+    chrome.runtime.sendMessage({id: "searchYouTube", channel: channel, title: channel ? title : `${username} ${title}`, clientInfo: youtubeClient}, response => {
+      let results = response.response;
+      if (!channel) {
+        results = results.filter(r => compareStrings(r.channel, username));
+      }
+      let episodeMatchRegex = /(?:Episode|Ep|Part)[\. ]*?(\d)/i;
+      let episodeMatch = title.match(episodeMatchRegex);
+      if (episodeMatch) {
+        results = results.filter(r => r.title.match(new RegExp(`(?:Episode|Ep|Part)[\. ]*?${episodeMatch[1]}`)) || !r.title.match(episodeMatchRegex));
+      }
+
+      let exactMatch = results.find(r => compareStrings(r.title, title));
+      if (exactMatch) {
+        youtubeId = exactMatch.videoId;
+        return;
+      }
+
+      youtubeId = results[0].videoId;
+    });
+  }, 100)
+}
 
 async function init() {
   if (window.location.hostname === "www.youtube.com") {
@@ -775,7 +866,8 @@ async function init() {
         anchorElement: "section[aria-label='video description']",
         anchorType: "beforeend",
         videoPlayer: "#video-player video",
-        titleElement: "[aria-label='video description'] h1"
+        titleElement: "[aria-label='video description'] h1",
+        usernameElement: "[aria-label='video description'] h2"
       };
       document.addEventListener("DOMContentLoaded", () => update());
       chrome.runtime.onMessage.addListener(

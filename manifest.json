@@ -3,21 +3,21 @@
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "permissions": ["storage"],
-  "host_permissions": ["*://www.youtube.com/", "*://nebula.tv/", "https://api.reddit.com/"],
+  "host_permissions": ["*://www.youtube.com/", "*://*.nebula.tv/", "https://api.reddit.com/"],
   "content_scripts": [{
-    "matches": ["https://www.youtube.com/*"],
-    "js": ["index.js"],
-    "css": ["css/main.css", "css/youtube.css"],
-    "run_at": "document_start"
-  },
-  {
-    "matches": ["https://nebula.tv/*"],
-    "js": ["index.js"],
-    "css": ["css/main.css", "css/nebula.css"],
-    "run_at": "document_start"
-  }],
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["index.js"],
+      "css": ["css/main.css", "css/youtube.css"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://nebula.tv/*"],
+      "js": ["index.js"],
+      "css": ["css/main.css", "css/nebula.css"],
+      "run_at": "document_start"
+    }],
   "background": {
     "service_worker": "background.js"
   },
