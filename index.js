@@ -711,7 +711,7 @@ async function getCommentsForVideo(videoUrl) {
         clearInterval(intervalId);
         resolve(null);
       }
-      else if (comments) {
+      else if (comments && document.querySelector(site.videoPlayer)) {
         clearInterval(intervalId);
         resolve(comments);
       }
@@ -824,13 +824,61 @@ async function nebulaSetup() {
         results = results.filter(r => r.title.match(new RegExp(`(?:Episode|Ep|Part)[\. ]*?${episodeMatch[1]}`)) || !r.title.match(episodeMatchRegex));
       }
 
-      let exactMatch = results.find(r => compareStrings(r.title, title));
-      if (exactMatch) {
-        youtubeId = exactMatch.videoId;
+      let exactMatch = results.filter(r => r.title === title);
+      if (exactMatch.length === 1) {
+        youtubeId = exactMatch[0].videoId;
         return;
       }
 
-      youtubeId = results[0].videoId;
+
+      let split = title.replace(/[^a-zA-Z0-9]+/g, " ").toLowerCase().split(" ");
+      let splitFiltered = split.filter(w => w.length > 2 && !["and", "for", "but", "the"].includes(w));
+
+      let overlaps = results.map(r => {
+        let rTitle = r.title.replace(/[^a-zA-Z0-9]+/g, " ").toLowerCase().split(" ");
+        return rTitle.filter(t => splitFiltered.includes(t));
+      });
+
+      if (overlaps.length === 0) {
+        youtubeId = "";
+        return;
+      }
+
+      let mostOverlapped = [];
+      overlaps.forEach((o, i) => {
+        if (!o.length) return;
+        if (!mostOverlapped.length || o.length > mostOverlapped[0][0].length) {
+          mostOverlapped = [[o, i]];
+        } else if (o.length === mostOverlapped[0][0].length) {
+          mostOverlapped.push([o, i]);
+        }
+      });
+
+      if (mostOverlapped.length === 0) {
+        youtubeId = "";
+        return;
+      } else if (mostOverlapped.length === 1) {
+        youtubeId = results[mostOverlapped[0][1]].videoId;
+        return;
+      }
+      
+      let indexes = mostOverlapped.map(o => o[1]);
+      let remainingResults = results.filter((r, i) => indexes.includes(i));
+
+      let player = document.querySelector(site.videoPlayer);
+      
+      let videoLength = player ? player.duration : parseTimestamp(document.querySelector("main time").textContent);
+      let distance = [];
+      remainingResults.forEach((r, i) => {
+        let time = Math.abs(videoLength - parseTimestamp(r.videoLength));
+        if (!distance.length || r < distance[0][0]) {
+          distance = [[time, i]];
+        } else if (r.time === distance[0][0]) {
+          distance.push([time, i]);
+        }
+      });
+      
+      youtubeId = distance[0][0] < 180 ? remainingResults[distance[0][1]].videoId : "";
     });
   }, 100)
 }

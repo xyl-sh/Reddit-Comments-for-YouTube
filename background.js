@@ -97,7 +97,8 @@ chrome.runtime.onMessage.addListener(
             let results = json.contents.twoColumnBrowseResultsRenderer.tabs.find(t => t.expandableTabRenderer?.selected).expandableTabRenderer.content.sectionListRenderer.contents.filter(r => r.itemSectionRenderer && r.itemSectionRenderer.contents[0].videoRenderer).map(r => ({
               videoId: r.itemSectionRenderer.contents[0].videoRenderer.videoId,
               title: r.itemSectionRenderer.contents[0].videoRenderer.title.runs[0].text,
-              channel: r.itemSectionRenderer.contents[0].videoRenderer.longBylineText.runs[0].text
+              channel: r.itemSectionRenderer.contents[0].videoRenderer.longBylineText.runs[0].text,
+              videoLength: r.itemSectionRenderer.contents[0].videoRenderer.lengthText.simpleText
             }));
             sendResponse({response: results});
           });
@@ -109,7 +110,8 @@ chrome.runtime.onMessage.addListener(
             let results = json.contents.twoColumnSearchResultsRenderer.primaryContents.sectionListRenderer.contents[0].itemSectionRenderer.contents.filter(r => r.videoRenderer).map(r => ({
               videoId: r.videoRenderer.videoId,
               title: r.videoRenderer.title.runs[0].text,
-              channel: r.videoRenderer.longBylineText.runs[0].text
+              channel: r.videoRenderer.longBylineText.runs[0].text,
+              videoLength: r.videoRenderer.lengthText.simpleText
             }));
             sendResponse({response: results});
           });
