@@ -762,22 +762,9 @@ async function update() {
 };
 
 async function nebulaSetup() {
-  chrome.storage.local.get({youtubeInfo: {}}, result => {
-    if (result.youtubeInfo.lastUpdated && (Date.now() - result.youtubeInfo.lastUpdated) > 86400000) {
-      youtubeClient = result.youtubeInfo.client;
-    } else {
-      chrome.runtime.sendMessage({id: "getYouTubeClientInfo"}, response => {
-        youtubeClient = {
-          clientVersion: response.response.match(/(?:"INNERTUBE_CLIENT_VERSION":")([\d.]*?)(?:")/)[1],
-          apiKey: response.response.match(/(?:"INNERTUBE_API_KEY":")(.*?)(?:")/)[1]
-        };
-        chrome.storage.local.set({youtubeInfo: {"lastUpdated": Date.now(), "client": youtubeClient}});
-      });
-    }
-  });
   chrome.storage.local.get({nebulaMap: {}}, result => {
     if (result.nebulaMap.lastUpdated && (Date.now() - result.nebulaMap.lastUpdated) > 86400000) {
-      nebulaMapping = result.mapping;
+      nebulaMapping = result.nebulaMap.mapping;
     } else {
       chrome.runtime.sendMessage({id: "getNebulaCreators"}, response => {
         let template = document.createElement("template");
@@ -798,7 +785,7 @@ async function nebulaSetup() {
       return (s1.includes(s2) || s2.includes(s1));
     }
 
-    if (!youtubeClient || !nebulaMapping) {
+    if (!nebulaMapping) {
       return;
     }
 
@@ -809,13 +796,15 @@ async function nebulaSetup() {
       youtubeId = "";
       return;
     }
-
+    
     let title = document.querySelector(site.titleElement).textContent;
     let username = document.querySelector(site.usernameElement).textContent;
 
-    chrome.runtime.sendMessage({id: "searchYouTube", channel: channel, title: channel ? title : `${username} ${title}`, clientInfo: youtubeClient}, response => {
+    chrome.runtime.sendMessage({id: "searchYouTube", channel: channel, title: `${username} ${title}`, clientInfo: youtubeClient}, response => {
       let results = response.response;
-      if (!channel) {
+      if (channel) {
+        results = results.filter(r => r.channelId === channel);
+      } else {
         results = results.filter(r => compareStrings(r.channel, username));
       }
       let episodeMatchRegex = /(?:Episode|Ep|Part)[\. ]*?(\d)/i;

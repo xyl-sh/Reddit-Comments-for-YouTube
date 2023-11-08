@@ -80,42 +80,24 @@ chrome.runtime.onMessage.addListener(
         }).then(response => response.json()).then(json => sendResponse({response: json}));
         break;
 
-      case "getYouTubeClientInfo":
-        fetch("https://www.youtube.com/sw.js").then(response => response.text()).then(text => sendResponse({response: text}));
-        break;
-
       case "getNebulaCreators":
         fetch("https://talent.nebula.tv/creators/").then(response => response.text()).then(text => sendResponse({response: text}));
         break;
 
       case "searchYouTube":
-        if (request.channel) {
-          fetch(`https://www.youtube.com/channel/${request.channel}/search?query=${request.title}&themeRefresh=1`)
-          .then(response => response.text())
-          .then(text => {
-            let json = JSON.parse(text.split(">var ytInitialData = ")[1].split(";</script>")[0]);
-            let results = json.contents.twoColumnBrowseResultsRenderer.tabs.find(t => t.expandableTabRenderer?.selected).expandableTabRenderer.content.sectionListRenderer.contents.filter(r => r.itemSectionRenderer && r.itemSectionRenderer.contents[0].videoRenderer).map(r => ({
-              videoId: r.itemSectionRenderer.contents[0].videoRenderer.videoId,
-              title: r.itemSectionRenderer.contents[0].videoRenderer.title.runs[0].text,
-              channel: r.itemSectionRenderer.contents[0].videoRenderer.longBylineText.runs[0].text,
-              videoLength: r.itemSectionRenderer.contents[0].videoRenderer.lengthText.simpleText
-            }));
-            sendResponse({response: results});
-          });
-        } else {
-          fetch(`https://www.youtube.com/results?search_query=${request.title}&themeRefresh=1`)
-          .then(response => response.text())
-          .then(text => {
-            let json = JSON.parse(text.split(">var ytInitialData = ")[1].split(";</script>")[0]);
-            let results = json.contents.twoColumnSearchResultsRenderer.primaryContents.sectionListRenderer.contents[0].itemSectionRenderer.contents.filter(r => r.videoRenderer).map(r => ({
-              videoId: r.videoRenderer.videoId,
-              title: r.videoRenderer.title.runs[0].text,
-              channel: r.videoRenderer.longBylineText.runs[0].text,
-              videoLength: r.videoRenderer.lengthText.simpleText
-            }));
-            sendResponse({response: results});
-          });
-        }
+        fetch(`https://www.youtube.com/results?search_query=${request.title}&themeRefresh=1`)
+        .then(response => response.text())
+        .then(text => {
+          let json = JSON.parse(text.split(">var ytInitialData = ")[1].split(";</script>")[0]);
+                    let results = json.contents.twoColumnSearchResultsRenderer.primaryContents.sectionListRenderer.contents[0].itemSectionRenderer.contents.filter(r => r.videoRenderer).map(r => ({
+            videoId: r.videoRenderer.videoId,
+            title: r.videoRenderer.title.runs[0].text,
+            channel: r.videoRenderer.longBylineText.runs[0].text,
+            channelId: r.videoRenderer.longBylineText.runs[0].navigationEndpoint.browseEndpoint.browseId,
+            videoLength: r.videoRenderer.lengthText.simpleText
+          }));
+          sendResponse({response: results});
+        });
 
         break;
       }
