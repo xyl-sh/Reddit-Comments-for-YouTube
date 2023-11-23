@@ -1,0 +1,25 @@
+@import './css/youtube.css';
+@import './css/nebula.css';
+@tailwind base;
+@tailwind components;
+
+@layer components {
+	:root {
+		--light-arrows: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAcCAMAAABBJv+bAAAAt1BMVEWUlP+bm/+wsP+0tP+7u/+/v//Bwf//jGH/lW3/rY7/s5f/uqH/v6f///+Skv+UlP+amv+bm/+env+hof+np/+pqf+urv+wsP+0tP+2tra3t7e4uLi7u/+8vLy9vb2+vr6/v//AwMDBwcHBwf/CwsLHx8fIyMjKysrNzc3Ozs7T09PU1NTY2Njb29vc3Nz/il7/i2D/jGH/k2v/lW3/mXP/m3b/o4H/pob/rI3/rY7/s5f/uqH/v6ezogKWAAAADnRSTlMAAAAAAAAAAAAAAAAAAKroblcAAAFFSURBVHjaXdOJcoIwEAbgjdhaUQvesChYq/XEAt7o+z9XN5vFzuTPMLvDNxOOJNAwyaV2TFAqiBbiotNI2OgxO+b/HCUYo2HWU5ZlJ3bWOSJ+IbMou2EkDckjzTwzh+cnTcIwRBoJOYj+ineiGFErhZ4P+VEnz6ViElMQozihgdD4oFyLorjqxrz5Kp5OV9wxN+/n8/nefPFmsZhvXuy65eVyKV234u1y+bOruNVqPW6324Oq8H693uyF25RnWZZP3RhOd7ttarjNrMMd3zykaXow/K7zrcOdzcAcBMHsjQL25KDq9fpkNBpNqCqwXo1YOU4wGAwCx1HC8mHCqjbu9/vjmhKW3yJMGfq+P1TM1k/1ujqeJ9VeEnKP8kkXdWAvqLgo2NtBe4+1Rwr2ZhIXBXsrGu/S4M7eyOK+UbCPQeVSrUP0B0gCQSDh8Lc2AAAAAElFTkSuQmCC);
+		--dark-arrows: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAcCAMAAABBJv+bAAAAulBMVEUjJCSUlP+bm/+wsP+0tP+7u/+/v//Bwf//jGH/lW3/rY7/s5f/uqH/v6ciIiIjIyMkJCQlJSUyMjI0NDQ2NjY3Nzc5OTk7Ozs8PDw9PT0+Pj4/Pz9AQEBBQUFCQkJDQ0NGRkZISEiSkv+UlP+amv+bm/+env+hof+np/+pqf+urv+wsP+0tP+7u/+/v//Bwf//il7/i2D/jGH/k2v/lW3/mXP/m3b/o4H/pob/rI3/rY7/s5f/uqH/v6frU0yEAAAADnRSTlMAAAAAAAAAAAAAAAAAAKroblcAAAFDSURBVHjaddOJToNAEIDh2S3VWtqlitBKD4tgT6oCvWnf/7WcmR2NUfwTMpN8YdOELbRshUywRSCJltaFn4cjYavbfEsuPPZNKO+z7vI835EzjwJjTH/ALCpOHIUG855CYj6Zw/OJ+wPD9YYBsuiHOISRZ2z3Yx+g2FJFIfMxxqZoMfUArTvsWJblkRb7y4mnvDG3z/v9/tz+h123OhwOlevWcqfTuZxOpwvOGu5i16qqrrT84S4zxRtQMSZ8S71TvAljlhVzlmVvN5iybIz5Yt1sNjer1WqDU9ewdpxssVhkjqNrWTfW8/l83dC1jC3TNF3qOk5eqSSR6ccYM+WDSsiSF3xwUxAMe+bHB1fWRRV8f3AvCgEZfcY6Q0WGQZ9ULpsSJ2WWyxZGIEzn08nMclWDEQizp6zCMIkmICwu89ef6BOMZzanB7uviwAAAABJRU5ErkJggg==);
+		--arrows: var(--light-arrows);
+	}
+
+	.plain-button {
+		@apply bg-transparent border-0 text-left;
+	}
+
+	.plain-button-link {
+		@apply plain-button text-link;
+	}
+
+	.fill-available {
+		width: -webkit-fill-available !important;
+		width: -moz-available !important;
+	}
+}

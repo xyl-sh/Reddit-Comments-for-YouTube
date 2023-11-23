@@ -1,0 +1,291 @@
+{
+	"extensionName": {
+		"message": "Reddit Comments for YouTube (+ Nebula)"
+	},
+	"extensionDescription": {
+		"message": "Improve your YouTube (and Nebula) experience by adding a Reddit comment section to the site!"
+	},
+	"header": {
+		"message": "Reddit Comments"
+	},
+	"loadingThreads": {
+		"message": "Loading threads..."
+	},
+	"addButton": {
+		"message": "Add..."
+	},
+	"sortThreads": {
+		"message": "Sort:"
+	},
+	"score": {
+		"message": "Score"
+	},
+	"comments": {
+		"message": "Comments"
+	},
+	"subreddit": {
+		"message": "Subreddit"
+	},
+	"newest": {
+		"message": "Newest"
+	},
+	"loadingComments": {
+		"message": "Loading comments..."
+	},
+	"oneThread": {
+		"message": "1 thread"
+	},
+	"threadCount": {
+		"message": "$NUMBER$ threads",
+		"placeholders": {
+			"number": {
+				"content": "$1"
+			}
+		}
+	},
+	"noThreads": {
+		"message": "No threads found."
+	},
+	"error": {
+		"message": "Error"
+	},
+	"internetError": {
+		"message": "Internet connection error. Please check your connection and reload the page."
+	},
+	"otherError": {
+		"message": "Unknown error loading Reddit content. It is possible that Reddit is down or something in the extension went wrong."
+	},
+	"threadTagline": {
+		"message": "submitted $TIME$ by <a href='$DOMAIN$/user/$AUTHOR$' target='_blank'>$AUTHOR$</a> to <a id='rcfy-thread-subreddit' href='$DOMAIN$/r/$SUBREDDIT$' target='_blank'>r/$SUBREDDIT$</a>",
+		"placeholders": {
+			"time": {
+				"content": "$1"
+			},
+			"author": {
+				"content": "$2"
+			},
+			"subreddit": {
+				"content": "$3"
+			},
+			"domain": {
+				"content": "$4"
+			}
+		}
+	},
+	"moreAwards": {
+		"message": "& $NUMBER$ more",
+		"placeholders": {
+			"number": {
+				"content": "$1"
+			}
+		}
+	},
+	"stickiedComment": {
+		"message": " - stickied comment"
+	},
+	"commentPoint": {
+		"message": "$POINTS$ point",
+		"placeholders": {
+			"points": {
+				"content": "$1"
+			}
+		}
+	},
+	"commentPoints": {
+		"message": "$POINTS$ points",
+		"placeholders": {
+			"points": {
+				"content": "$1"
+			}
+		}
+	},
+	"commentThousandUnit": {
+		"message": "$NUMBER$k",
+		"placeholders": {
+			"number": {
+				"content": "$1"
+			}
+		}
+	},
+	"commentScoreHidden": {
+		"message": "[score hidden]"
+	},
+	"commentEdited": {
+		"message": "last edited $TIME$",
+		"placeholders": {
+			"time": {
+				"content": "$1"
+			}
+		}
+	},
+	"permalink": {
+		"message": "permalink"
+	},
+	"edit": {
+		"message": "edit"
+	},
+	"editFailed": {
+		"message": "failed to edit"
+	},
+	"delete": {
+		"message": "delete"
+	},
+	"confirmDelete": {
+		"message": "are you sure?"
+	},
+	"yes": {
+		"message": "yes"
+	},
+	"no": {
+		"message": "no"
+	},
+	"deleted": {
+		"message": "deleted"
+	},
+	"reply": {
+		"message": "reply"
+	},
+	"hideChildComments": {
+		"message": "hide child comments"
+	},
+	"showChildComments": {
+		"message": "show child comments"
+	},
+	"loadMoreComments": {
+		"message": "load more comments"
+	},
+	"moreCount": {
+		"message": "($COUNT$ more)",
+		"placeholders": {
+			"count": {
+				"content": "$1"
+			}
+		}
+	},
+	"loadingMoreComments": {
+		"message": "loading..."
+	},
+	"save": {
+		"message": "save"
+	},
+	"cancel": {
+		"message": "cancel"
+	},
+	"sortedBy": {
+		"message": "sorted by:"
+	},
+	"best": {
+		"message": "best"
+	},
+	"top": {
+		"message": "top"
+	},
+	"new": {
+		"message": "new"
+	},
+	"controversial": {
+		"message": "controversial"
+	},
+	"old": {
+		"message": "old"
+	},
+	"qa": {
+		"message": "q&a"
+	},
+	"timeJustNow": {
+		"message": "just now"
+	},
+	"timeSecondsAgo": {
+		"message": "$SECONDS$ seconds ago",
+		"placeholders": {
+			"seconds": {
+				"content": "$1"
+			}
+		}
+	},
+	"timeMinuteAgo": {
+		"message": "1 minute ago"
+	},
+	"timeMinutesAgo": {
+		"message": "$MINUTES$ minutes ago",
+		"placeholders": {
+			"minutes": {
+				"content": "$1"
+			}
+		}
+	},
+	"timeHourAgo": {
+		"message": "1 hour ago"
+	},
+	"timeHoursAgo": {
+		"message": "$HOURS$ hours ago",
+		"placeholders": {
+			"hours": {
+				"content": "$1"
+			}
+		}
+	},
+	"timeDayAgo": {
+		"message": "1 day ago"
+	},
+	"timeDaysAgo": {
+		"message": "$DAYS$ days ago",
+		"placeholders": {
+			"days": {
+				"content": "$1"
+			}
+		}
+	},
+	"timeMonthAgo": {
+		"message": "1 month ago"
+	},
+	"timeMonthsAgo": {
+		"message": "$MONTHS$ months ago",
+		"placeholders": {
+			"months": {
+				"content": "$1"
+			}
+		}
+	},
+	"timeYearAgo": {
+		"message": "1 year ago"
+	},
+	"timeYearsAgo": {
+		"message": "$YEARS$ years ago",
+		"placeholders": {
+			"years": {
+				"content": "$1"
+			}
+		}
+	},
+	"enableYouTube": {
+		"message": "Show on YouTube."
+	},
+	"enableNebula": {
+		"message": "Show on Nebula."
+	},
+	"matchToYouTube": {
+		"message": "Try to match Nebula videos to YouTube (may return false positives)."
+	},
+	"collapseOnLoad": {
+		"message": "Collapse comments by default."
+	},
+	"childrenHiddenDefault": {
+		"message": "Auto-hide children for top-level comments."
+	},
+	"includeNSFW": {
+		"message": "Include NSFW threads while logged out."
+	},
+	"defaultSort": {
+		"message": "Default comment sort: "
+	},
+	"subBlacklist": {
+		"message": "Blacklist subreddits:"
+	},
+	"duplicateEntry": {
+		"message": "Duplicate entry, ignored."
+	},
+	"invalidSubreddit": {
+		"message": "Must be at least 3 letters, numbers, and underscores."
+	}
+}

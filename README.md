@@ -6,7 +6,7 @@
 
 An extension to display Reddit threads for YouTube and Nebula videos.
 
-This is loosely based on [Lucien Maloney's extension](https://github.com/lucienmaloney/reddit_comments_for_youtube_extension) (it was once a fork, but has since been totally rewritten).
+This is loosely based on [Lucien Maloney's extension](https://github.com/lucienmaloney/reddit_comments_for_youtube_extension) (it was once a fork, but has since been totally rewritten twice).
 
 Supports:
 
