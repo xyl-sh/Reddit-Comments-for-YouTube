@@ -32,7 +32,7 @@ const Sites: Site[] = [
 		canMatchYouTube: false,
 		domains: ['www.youtube.com', 'youtu.be'],
 		templates: [
-			'https://www.youtube.com/watch?videoId',
+			'https://www.youtube.com/watch?v=videoId',
 			'https://youtu.be/videoId',
 		],
 	},
