@@ -70,6 +70,8 @@
 				}
 		);
 		setThread(threadOptions[0]);
+
+		isLoading = false;
 	}
 
 	async function getThreads() {
@@ -95,7 +97,6 @@
 				? browser.i18n.getMessage('oneThread')
 				: browser.i18n.getMessage('threadCount', [`${threads.length}`]);
 
-		isLoading = false;
 		sortThreads(selectedSort);
 	}
 
@@ -124,7 +125,11 @@
 	});
 
 	function setThread(o: SelectOption) {
+		console.log(JSON.stringify(threads));
+		console.log(JSON.stringify(o));
 		selectedThread = threads.find((t) => t.fullId === o.id)!;
+		console.log(selectedThread);
+		console.log(JSON.stringify(selectedThread));
 	}
 
 	onMount(async () => {

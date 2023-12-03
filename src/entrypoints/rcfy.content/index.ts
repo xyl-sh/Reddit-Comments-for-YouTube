@@ -7,16 +7,15 @@ import { SettingType, Settings, getSetting } from '@/lib/settings';
 import './style.css';
 import { SiteId } from '@/lib/constants';
 
-let location = '';
+let lastVideoId: string;
 
 export default defineContentScript({
-	matches: ['*://*.youtube.com/*', '*://*.nebula.tv/*'],
+	matches: ['*://www.youtube.com/*', '*://nebula.tv/*'],
+	runAt: 'document_start',
 
 	main(ctx: InstanceType<typeof ContentScriptContext>) {
 		const site: Site = getSite(window.location.hostname);
 		const ui: HTMLDivElement = document.createElement('div');
-
-		setup(site, ui);
 
 		site.eventListeners.forEach((e) => {
 			document.addEventListener(e, () => setup(site, ui));
@@ -51,23 +50,20 @@ async function siteEnabled(id: SiteId) {
 }
 
 async function setup(site: Site, ui: HTMLDivElement) {
-	if (location === window.location.href) return;
-	location = window.location.href;
-
-	ui.replaceChildren();
-
-	siteStore.set(site);
-
 	const isEnabled = await siteEnabled(site.id);
 	if (!isEnabled) {
 		return;
 	}
 
 	const videoId = getVideoId(site);
-	if (!videoId) {
+	if (!videoId || videoId === lastVideoId) {
 		return;
 	}
+	lastVideoId = videoId;
 	videoIdStore.set(videoId);
+
+	siteStore.set(site);
+	ui.replaceChildren();
 
 	const searchYouTubeEnabled =
 		site.canMatchYouTube &&

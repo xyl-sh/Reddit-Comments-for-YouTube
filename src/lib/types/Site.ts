@@ -24,7 +24,7 @@ export type Site = {
 const Sites: Site[] = [
 	{
 		id: SiteId.YOUTUBE,
-		idRegex: /(?<=v=|shorts\/)[a-zA-Z0-9\-_]{11}/,
+		idRegex: /(?<=v=|shorts\/)[a-zA-Z0-9\-_]*/,
 		anchorType: AnchorType.BEFOREBEGIN,
 		anchorElement: '#comments',
 		usernameElement: 'yt-formatted-string.ytd-channel-name a',
