@@ -58,6 +58,11 @@ export async function redditCommentParser(content: string, site: Site) {
 		`<button class='reddit-spoiler' onclick='this.classList.toggle("reddit-spoiler")'>$1</button>`
 	);
 
+	content = content.replaceAll(/\^{3,}/g, '^^^');
+	while (content.match(/\^(\S*)/)) {
+		content = content.replaceAll(/\^(\S*)/g, '<sup>$1</sup>');
+	}
+
 	return await marked(content, { renderer });
 }
 
