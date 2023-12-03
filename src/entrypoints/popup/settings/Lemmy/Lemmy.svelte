@@ -4,6 +4,7 @@
 	import LemmyLogin from './LemmyLogin.svelte';
 	import String from '../String.svelte';
 	import Checkbox from '../Checkbox.svelte';
+	import Dropdown from '../Dropdown.svelte';
 	let value: string = '';
 	let errorMessage: string;
 	let domain: string;
@@ -64,6 +65,9 @@
 	{/if}
 	{#if domain}
 		<LemmyLogin bind:username />
+		<Dropdown
+			setting={getSetting(Settings.DEFAULTSORTLEMMY, SettingType.OPTION)}
+		/>
 	{/if}
 </div>
 

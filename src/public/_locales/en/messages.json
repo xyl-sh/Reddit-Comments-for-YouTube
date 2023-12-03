@@ -272,6 +272,9 @@
 	"defaultSort": {
 		"message": "Default comment sort: "
 	},
+	"defaultSortLemmy": {
+		"message": "Default comment sort (Lemmy): "
+	},
 	"communityBlacklist": {
 		"message": "Blacklist communities:"
 	},

@@ -12,7 +12,7 @@ body {
 }
 
 #app {
-	@apply max-w-sm;
+	@apply w-96;
 }
 
 input[type='text'],
