@@ -118,18 +118,8 @@
 	let selectedThread: Thread;
 	let selectedSort: SelectOption;
 
-	youtubeIdStore.subscribe((r) => {
-		if (!$siteStore.canMatchYouTube || r !== undefined) {
-			getThreads();
-		}
-	});
-
 	function setThread(o: SelectOption) {
-		console.log(JSON.stringify(threads));
-		console.log(JSON.stringify(o));
 		selectedThread = threads.find((t) => t.fullId === o.id)!;
-		console.log(selectedThread);
-		console.log(JSON.stringify(selectedThread));
 	}
 
 	onMount(async () => {
@@ -140,6 +130,12 @@
 
 		const lastSort = await lastSortSetting.getValue();
 		selectedSort = sortOptions.find((o) => o.id === lastSort)!;
+
+		youtubeIdStore.subscribe((r) => {
+			if (!$siteStore.canMatchYouTube || r !== undefined) {
+				getThreads();
+			}
+		});
 	});
 </script>
 
