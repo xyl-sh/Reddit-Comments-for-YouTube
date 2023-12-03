@@ -18,6 +18,7 @@ export type Site = {
 	canMatchYouTube: boolean;
 	domains: string[];
 	templates: string[];
+	eventListeners: string[];
 };
 
 const Sites: Site[] = [
@@ -35,6 +36,7 @@ const Sites: Site[] = [
 			'https://www.youtube.com/watch?v=videoId',
 			'https://youtu.be/videoId',
 		],
+		eventListeners: ['yt-navigate-finish', 'spfdone', 'DOMContentLoaded'],
 	},
 	{
 		id: SiteId.NEBULA,
@@ -47,6 +49,7 @@ const Sites: Site[] = [
 		canMatchYouTube: false,
 		domains: ['nebula.tv'],
 		templates: ['https://nebula.tv/videos/videoId'],
+		eventListeners: ['DOMContentLoaded'],
 	},
 ];
 

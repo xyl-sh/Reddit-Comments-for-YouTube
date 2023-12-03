@@ -7,6 +7,8 @@ import { SettingType, Settings, getSetting } from '@/lib/settings';
 import './style.css';
 import { SiteId } from '@/lib/constants';
 
+let location = '';
+
 export default defineContentScript({
 	matches: ['*://*.youtube.com/*', '*://*.nebula.tv/*'],
 
@@ -16,9 +18,12 @@ export default defineContentScript({
 
 		setup(site, ui);
 
+		site.eventListeners.forEach((e) => {
+			document.addEventListener(e, () => setup(site, ui));
+		});
+
 		browser.runtime.onMessage.addListener((message) => {
 			if (message.hasUrlChanged) {
-				ui.replaceChildren();
 				setup(site, ui);
 			}
 		});
@@ -46,6 +51,11 @@ async function siteEnabled(id: SiteId) {
 }
 
 async function setup(site: Site, ui: HTMLDivElement) {
+	if (location === window.location.href) return;
+	location = window.location.href;
+
+	ui.replaceChildren();
+
 	siteStore.set(site);
 
 	const isEnabled = await siteEnabled(site.id);
