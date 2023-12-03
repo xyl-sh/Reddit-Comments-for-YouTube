@@ -1,62 +1,58 @@
-import { CommentSort, Interactions } from '../constants';
+import {
+	RedditCommentSort,
+	LemmyCommentSort,
+	Kind,
+	Website,
+} from '../constants';
+import { MoreReplies, Thread } from './Elements';
 import type { Site } from './Site';
 
-export interface GetCommentsRequest {
-	threadId: string;
-	sort: CommentSort;
-	subreddit: string;
-}
+export type GetCommentsRequest = {
+	thread: Thread;
+	sort: RedditCommentSort | LemmyCommentSort;
+};
 
-export interface GetMoreChildrenRequest {
-	parent: string;
-	link_id: string;
-	sort: string;
-	children: string;
-	id: string;
-}
+export type GetMoreChildrenRequest = {
+	moreChildren: MoreReplies;
+	sort: RedditCommentSort | LemmyCommentSort;
+	page: number;
+};
 
-export interface GetThreadsRequest {
+export type GetThreadsRequest = {
 	site: Site;
 	videoId: string;
 	youtubeId: string | null;
-}
+};
 
-export interface SearchYouTubeRequest {
+export type SearchYouTubeRequest = {
 	title: string;
 	channelName: string;
 	channelId: string;
 	videoLength: number;
-}
+};
 
-export interface InteractionRequest {
-	interaction: Interactions;
-	formData: object;
-}
+export type VoteRequest = {
+	kind: Kind.COMMENT | Kind.THREAD;
+	website: Website;
+	id: string;
+	vote: number;
+};
 
-export interface VoteRequest extends InteractionRequest {
-	interaction: Interactions.VOTE;
-	formData: {
-		id: string;
-		dir: number;
-		rank: 2;
-	};
-}
+export type CommentRequest = {
+	website: Website;
+	isEdit: boolean;
+	id: string;
+	threadId: string;
+	text: string;
+};
 
-export interface CommentRequest extends InteractionRequest {
-	interaction: Interactions.COMMENT | Interactions.EDIT;
-	formData: {
-		thing_id: string;
-		text: string;
-	};
-}
+export type DeleteRequest = {
+	website: Website;
+	id: string;
+};
 
-export interface DeleteRequest extends InteractionRequest {
-	interaction: Interactions.DELETE;
-	formData: {
-		id: string;
-	};
-}
-
-export type Response<T> =
-	| { success: true; value: T }
-	| { success: false; errorMessage: string };
+export type LemmyLoginRequest = {
+	username_or_email: string;
+	password: string;
+	totp_2fa_token?: string;
+};

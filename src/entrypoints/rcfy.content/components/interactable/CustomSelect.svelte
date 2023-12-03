@@ -9,11 +9,10 @@
 	import { onMount } from 'svelte';
 
 	export let options: SelectOption[];
-	export let defaultOption: SelectOption | undefined;
+	export let selectedOption: SelectOption;
 	export let fullWidth: boolean = false;
 	export let callback: (o: SelectOption) => void;
 
-	let selectedOption: SelectOption;
 	let entryWidth: number;
 	let buttonWidth: number = 0;
 	let isActive = false;
@@ -41,15 +40,13 @@
 		};
 	}
 
-	setSelectedOption(defaultOption || options[0]);
-
 	onMount(() => {
 		buttonWidth = entryWidth - 10;
 	});
 </script>
 
 <div
-	class="container"
+	class="select"
 	class:fill-available={fullWidth}
 	class:fit={!fullWidth}
 	use:clickOutside
@@ -71,7 +68,7 @@
 		bind:clientWidth={entryWidth}
 	>
 		{#each options as o (o.id)}
-			<button tabindex="-1" on:click={() => setSelectedOption(o)}>
+			<button on:click={() => setSelectedOption(o)}>
 				{o.title}
 			</button>
 		{/each}
@@ -79,8 +76,16 @@
 </div>
 
 <style lang="postcss">
-	.container {
-		@apply relative text-standard cursor-pointer [&_*]:text-primary [&_*]:overflow-hidden [&_*]:whitespace-pre [&_*]:text-ellipsis;
+	button {
+		@apply plain-button;
+	}
+
+	.select {
+		@apply relative text-standard cursor-pointer;
+
+		* {
+			@apply text-primary overflow-hidden whitespace-pre text-ellipsis;
+		}
 	}
 
 	.fit {
@@ -88,11 +93,11 @@
 	}
 
 	.selector {
-		@apply plain-button box-content flex items-center justify-between p-[5px] gap-[5px] rounded-small bg-interactable border-[1px] border-interactable fill-available;
-	}
+		@apply box-content flex items-center justify-between p-[5px] gap-[5px] rounded-small bg-interactable border-[1px] border-interactable fill-available border-solid;
 
-	.selector.active {
-		@apply rounded-b-none;
+		&.active {
+			@apply rounded-b-none;
+		}
 	}
 
 	.arrow {
@@ -100,18 +105,14 @@
 	}
 
 	.options {
-		@apply bg-select absolute top-full z-10 border-interactable border-[1px] box-content border-t-0 flex flex-col rounded-b-small max-h-[40vh];
-	}
+		@apply bg-select absolute top-full z-10 border-interactable border-solid box-content border-t-0 flex flex-col rounded-b-small max-h-[40vh] overflow-auto;
 
-	.options.hidden {
-		@apply invisible;
-	}
+		button {
+			@apply bg-option p-[5px] border-t-0 flex-shrink-0 last:border-b-0 hover:bg-hover;
+		}
 
-	.options button {
-		@apply plain-button bg-option p-[5px] border-t-0 flex-shrink-0 last:border-b-0 hover:bg-hover;
-	}
-
-	button {
-		font-size: revert;
+		&.hidden {
+			@apply invisible;
+		}
 	}
 </style>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { type ArraySetting } from '@/lib/settings';
 	import { onMount } from 'svelte';
+	import String from './String.svelte';
 	export let setting: ArraySetting<any>;
 	let values: string[] = [];
 	let value: string;
@@ -29,21 +30,43 @@
 	});
 </script>
 
-<div class="flex flex-col gap-1 justify-start items-start py-[20px] w-full">
-	<span class="text-base">{setting.label}</span>
-	<div class="flex gap-2 w-full">
-		<input type="text" class="rounded-md flex-grow" bind:value="{value}" /><button
-			class="flex-shrink-0"
-			on:click="{onAdd}">{addLabel}</button
-		>
-	</div>
+<div class="list-container">
+	<span class="heading">{setting.label}</span>
+	<String
+		bind:value
+		callback={onAdd}
+		label={addLabel}
+		placeholder={undefined}
+	/>
 
 	{#if errorMessage}
-		<span class="text-red-600">{errorMessage}</span>
+		<span class="text-[#CC0000]">{errorMessage}</span>
 	{/if}
 	{#each values as v}
-		<div class="flex w-full items-center">
-			<span class="flex-grow text-sm">{v}</span><button class="flex-shrink-0" on:click="{() => onRemove(v)}">🗑</button>
+		<div class="entry">
+			<span>{v}</span><button on:click={() => onRemove(v)}>🗑</button>
 		</div>
 	{/each}
 </div>
+
+<style lang="postcss">
+	.list-container {
+		@apply flex flex-col gap-1 justify-start items-start py-[20px] w-full;
+	}
+
+	.entry {
+		@apply flex w-full items-center gap-1;
+
+		span {
+			@apply flex-grow text-sm overflow-hidden text-ellipsis;
+		}
+	}
+
+	button {
+		@apply flex-shrink-0;
+	}
+
+	.heading {
+		@apply text-sm;
+	}
+</style>

@@ -1,104 +1,150 @@
-import { Kind, REDDIT_API_DOMAIN, REDDIT_LINK_DOMAIN } from '@/lib/constants';
-import { GetCommentsRequest } from '@/lib/types/NetworkRequests';
 import {
-	Comment,
-	ExtraThreadInfo,
-	MoreChildren,
-} from '@/lib/types/RedditElements';
-import { getMe } from './GetMe';
+	LemmyCommentSort,
+	REDDIT_API_DOMAIN,
+	RedditCommentSort,
+	Website,
+} from '@/lib/constants';
+import type { GetCommentsRequest } from '@/lib/types/NetworkRequests';
+import type { Replies, Thread } from '@/lib/types/Elements';
+import { getUser } from './GetUser';
+import {
+	lemmyCommentsToComments,
+	redditCommentsToComments,
+} from '@/lib/mappers/CommentMapper';
+import { buildLemmyUrl, fetchCatch } from '@/lib/tools/RequestTools';
+import type {
+	CommentResponse,
+	FetchResponse,
+} from '@/lib/types/NetworkResponses';
+import { SettingType, Settings, getSetting } from '@/lib/settings';
 
-function mapComments(
-	threads: any[],
-	threadId: string | undefined
-): (Comment | MoreChildren)[] {
-	const mappedComments = threads
-		.filter((t) => ['t1', 'more'].includes(t.kind))
-		.map((t) => {
-			const d = t.data;
-			if (t.kind === 't1') {
-				const userVote = d.likes === null ? 0 : d.likes ? 1 : -1;
-
-				const comment: Comment = {
-					kind: Kind.COMMENT,
-					id: d.id,
-					fullId: d.name,
-					parent: d.parent_id,
-					body: d.body,
-					bodyHtml: d.body_html,
-					author: d.author,
-					link: REDDIT_LINK_DOMAIN + d.permalink,
-					score: d.score - userVote,
-					replies: [],
-					createdTimestamp: d.created_utc,
-					editedTimestamp: d.edited,
-					distinguishedPoster: d.is_submitter ? 'op' : d.distinguished,
-					stickied: d.stickied,
-					scoreHidden: d.score_hidden,
-					userVote: userVote,
-					locked: d.locked,
-					controversial: d.controversiality === 1,
-				};
-
-				if (d.replies !== '') {
-					comment.replies.push(
-						...mapComments(d.replies.data.children, threadId)
-					);
-				}
-				return comment;
-			} else {
-				const more: MoreChildren = {
-					kind: Kind.MORE,
-					id: d.id,
-					fullId: d.name,
-					parent: d.parent_id,
-					threadId: `t3_${threadId}`,
-					count: d.count,
-					children: d.children,
-				};
-				return more;
-			}
-		});
-	return mappedComments;
-}
-
-async function getThread(
+async function getRedditThread(
 	threadId: string,
 	sort: string
-): Promise<(Comment | MoreChildren)[]> {
-	const response = await fetch(
+): Promise<FetchResponse<Replies>> {
+	const response = await fetchCatch(
 		`${REDDIT_API_DOMAIN}/comments/${threadId}?sort=${sort}&raw_json=1`
 	);
-	const responseJson = await response.json();
 
-	const mappedThreads = mapComments(responseJson[1].data.children, threadId);
-	return mappedThreads;
+	if (!response.success) {
+		return response;
+	}
+
+	const responseJson = await response.value.json();
+
+	const mappedThreads = await redditCommentsToComments(
+		responseJson[1].data.children,
+		threadId
+	);
+
+	return { success: true, value: mappedThreads };
 }
 
-async function getBannedStatus(subreddit: string): Promise<boolean> {
-	const response = await fetch(
-		`${REDDIT_API_DOMAIN}/r/${subreddit}/about.json`
+async function getLemmyThread(
+	threadId: string,
+	sort: string
+): Promise<FetchResponse<Replies>> {
+	const url = new URL(await buildLemmyUrl('comment/list', true));
+	url.searchParams.append('post_id', threadId);
+	url.searchParams.append('sort', sort);
+	url.searchParams.append('limit', '50');
+
+	const token = await getSetting(
+		Settings.LEMMYTOKEN,
+		SettingType.STRING
+	).getValue();
+	if (token) {
+		url.searchParams.append('auth', token);
+	}
+
+	const response = await fetchCatch(url);
+
+	if (!response.success) {
+		return response;
+	}
+
+	const responseJson = await response.value.json();
+
+	const mappedThreads = await lemmyCommentsToComments(
+		responseJson.comments,
+		threadId,
+		'0'
 	);
-	const responseJson = await response.json();
+	return { success: true, value: mappedThreads };
+}
+
+async function getBannedStatus(
+	subreddit: string
+): Promise<FetchResponse<boolean>> {
+	const response = await fetchCatch(
+		`${REDDIT_API_DOMAIN}/${subreddit}/about.json`
+	);
+
+	if (!response.success) {
+		return response;
+	}
+
+	const responseJson = await response.value.json();
 
 	const isBanned = responseJson?.data?.user_is_banned !== false;
-	return isBanned;
+
+	return { success: true, value: isBanned };
+}
+
+async function getRedditComments(
+	thread: Thread,
+	sort: RedditCommentSort
+): Promise<FetchResponse<CommentResponse>> {
+	const [comments, me, isBanned] = await Promise.all([
+		getRedditThread(thread.id, sort),
+		getUser(Website.REDDIT),
+		getBannedStatus(thread.community),
+	]);
+
+	if (!comments.success) {
+		return comments;
+	}
+
+	const response: CommentResponse = {
+		replies: comments.value,
+		user: me.success ? me.value : undefined,
+		isBanned: isBanned.success ? isBanned.value : undefined,
+	};
+
+	return { success: true, value: response };
+}
+
+async function getLemmyComments(
+	thread: Thread,
+	sort: LemmyCommentSort
+): Promise<FetchResponse<CommentResponse>> {
+	const [comments, me] = await Promise.all([
+		getLemmyThread(thread.id, sort),
+		getUser(Website.LEMMY),
+	]);
+
+	if (!comments.success) {
+		return comments;
+	}
+
+	const response: CommentResponse = {
+		replies: comments.value,
+		user: me.success ? me.value : undefined,
+		isBanned: false, // can't figure out where this is in the API
+	};
+
+	return { success: true, value: response };
 }
 
 async function getComments(
 	r: GetCommentsRequest
-): Promise<[comments: (Comment | MoreChildren)[], info: ExtraThreadInfo]> {
-	const [comments, me, isBanned] = await Promise.all([
-		getThread(r.threadId, r.sort),
-		getMe(),
-		getBannedStatus(r.subreddit),
-	]);
-
-	const extraThreadInfo: ExtraThreadInfo = {
-		isBanned: isBanned,
-		user: me,
-	};
-
-	return [comments, extraThreadInfo];
+): Promise<FetchResponse<CommentResponse>> {
+	switch (r.thread.website) {
+		case Website.REDDIT:
+			return await getRedditComments(r.thread, r.sort as RedditCommentSort);
+		case Website.LEMMY:
+			return await getLemmyComments(r.thread, r.sort as LemmyCommentSort);
+	}
 }
 
-export { getComments, mapComments };
+export { getComments };

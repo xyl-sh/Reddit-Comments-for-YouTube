@@ -1,6 +1,8 @@
+import { fetchCatch } from '@/lib/tools/RequestTools';
 import { cleanString } from '@/lib/tools/StringTools';
 import { parseTimestamp } from '@/lib/tools/TimeTools';
 import { SearchYouTubeRequest } from '@/lib/types/NetworkRequests';
+import { FetchResponse } from '@/lib/types/NetworkResponses';
 
 interface YouTubeResult {
 	videoId: string;
@@ -96,17 +98,28 @@ function findYouTubeMatch(
 	return results.find((r) => !!r) || null;
 }
 
-async function getYouTubeResults(channelName: string, title: string) {
-	const response = await fetch(
+async function getYouTubeResults(
+	channelName: string,
+	title: string
+): Promise<FetchResponse<YouTubeResult[]>> {
+	const response = await fetchCatch(
 		`https://www.youtube.com/results?search_query=${channelName} ${title}`
 	);
-	const textReponse = await response.text();
+
+	if (!response.success) {
+		return {
+			success: false,
+			errorMessage: 'Failed to get YouTube search results.',
+		};
+	}
+
+	const textReponse = await response.value.text();
 
 	const searchJson = JSON.parse(
 		textReponse.split('>var ytInitialData = ')[1].split(';</script>')[0]
 	);
 
-	const results =
+	const results: YouTubeResult[] =
 		searchJson.contents.twoColumnSearchResultsRenderer.primaryContents.sectionListRenderer.contents[0].itemSectionRenderer.contents
 			.filter((r: any) => r.videoRenderer)
 			.map(
@@ -122,10 +135,12 @@ async function getYouTubeResults(channelName: string, title: string) {
 					}
 			);
 
-	return results;
+	return { success: true, value: results };
 }
 
-async function matchNebulaChannel(channelId: string): Promise<string | null> {
+async function matchNebulaChannel(
+	channelId: string
+): Promise<FetchResponse<string | null>> {
 	interface NebulaChannelMapping {
 		nebulaChannel: string;
 		youtubeChannel: string;
@@ -144,11 +159,22 @@ async function matchNebulaChannel(channelId: string): Promise<string | null> {
 		const cachedChannelMatch = cachedChannels.mapping.find(
 			(c) => c?.nebulaChannel === channelId
 		);
-		return cachedChannelMatch ? cachedChannelMatch.youtubeChannel : null;
+		return {
+			success: true,
+			value: cachedChannelMatch ? cachedChannelMatch.youtubeChannel : null,
+		};
 	}
 
-	const response = await fetch('https://talent.nebula.tv/creators/');
-	const textReponse = await response.text();
+	const response = await fetchCatch('https://talent.nebula.tv/creators/');
+
+	if (!response.success) {
+		return {
+			success: false,
+			errorMessage: 'Failed to scrape Nebula creators.',
+		};
+	}
+
+	const textReponse = await response.value.text();
 
 	const channelEntries = [
 		...textReponse.matchAll(
@@ -184,28 +210,37 @@ async function matchNebulaChannel(channelId: string): Promise<string | null> {
 		(c) => c?.nebulaChannel === channelId
 	);
 
-	return channelMatch ? channelMatch.youtubeChannel : null;
+	return {
+		success: true,
+		value: channelMatch ? channelMatch.youtubeChannel : null,
+	};
 }
 
-async function searchYouTube(r: SearchYouTubeRequest) {
+async function searchYouTube(
+	r: SearchYouTubeRequest
+): Promise<FetchResponse<string | null>> {
 	const [youtubeResults, channelMatch] = await Promise.all([
 		getYouTubeResults(r.channelName, r.title),
 		matchNebulaChannel(r.channelId),
 	]);
 
-	if ([youtubeResults, channelMatch].includes(undefined)) {
-		return null;
+	if (youtubeResults.success === false) {
+		return youtubeResults;
+	}
+
+	if (channelMatch.success === false) {
+		return channelMatch;
 	}
 
 	const youtubeMatch = findYouTubeMatch(
-		youtubeResults,
-		channelMatch,
+		youtubeResults.value,
+		channelMatch.value,
 		r.title,
 		r.channelName,
 		r.videoLength
 	);
 
-	return youtubeMatch ? youtubeMatch.videoId : null;
+	return { success: true, value: youtubeMatch ? youtubeMatch.videoId : null };
 }
 
 export { searchYouTube };

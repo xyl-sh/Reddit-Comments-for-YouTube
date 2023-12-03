@@ -11,11 +11,21 @@
 	});
 </script>
 
-<div class="flex gap-1 justify-start items-start py-[10px]">
-	<label for="{setting.name}">{setting.label}</label>
-	<select id="{setting.name}" bind:value="{value}" on:change="{() => setting.setValue(value)}">
+<div class="dropdown-container">
+	<label for={setting.name}>{setting.label}</label>
+	<select
+		id={setting.name}
+		bind:value
+		on:change={() => setting.setValue(value)}
+	>
 		{#each setting.availableValues as o}
-			<option value="{o}">{o}</option>
+			<option value={o}>{o}</option>
 		{/each}
 	</select>
 </div>
+
+<style lang="postcss">
+	.dropdown-container {
+		@apply flex gap-1 justify-start items-start py-[10px];
+	}
+</style>

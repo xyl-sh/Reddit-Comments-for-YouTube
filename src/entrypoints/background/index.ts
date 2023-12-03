@@ -3,7 +3,10 @@ import { searchYouTube } from './messages/SearchYouTube';
 import { getComments } from './messages/GetComments';
 import { getThreads } from './messages/GetThreads';
 import { getMoreChildren } from './messages/GetMoreChildren';
-import { comment, deleteComment, vote } from './messages/Interact';
+import { vote } from './messages/interactions/Vote';
+import { lemmyLogin } from './messages/LemmyLogin';
+import { comment } from './messages/interactions/Comment';
+import { deleteComment } from './messages/interactions/Delete';
 
 browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
 	if (changeInfo.url) {
@@ -31,6 +34,9 @@ export default defineBackground(() => {
 	});
 	onMessage('vote', async (r) => {
 		return await vote(r.data);
+	});
+	onMessage('lemmyLogin', async (r) => {
+		return await lemmyLogin(r.data);
 	});
 	onMessage('searchYouTube', async (r) => {
 		return await searchYouTube(r.data);

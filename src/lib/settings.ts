@@ -1,4 +1,4 @@
-import { CommentSort } from './constants';
+import { LemmyCommentSort, RedditCommentSort, ThreadSort } from './constants';
 import { StorageValue } from 'wxt/storage';
 
 export enum Settings {
@@ -9,7 +9,13 @@ export enum Settings {
 	CHILDRENHIDDENDEFAULT = 'childrenHiddenDefault',
 	INCLUDENSFW = 'includeNSFW',
 	DEFAULTSORT = 'defaultSort',
-	SUBBLACKLIST = 'subBlacklist',
+	DEFAULTSORTLEMMY = 'defaultSortLemmy',
+	LASTSORT = 'lastSort',
+	COMMUNITYBLACKLIST = 'communityBlacklist',
+	LEMMYDOMAIN = 'lemmyDomain',
+	LEMMYTOKEN = 'lemmyToken',
+	LEMMYUSERNAME = 'lemmyUsername',
+	SHOWREDDITRESULTS = 'showRedditResults',
 }
 
 function getLabel(name: Settings) {
@@ -18,48 +24,70 @@ function getLabel(name: Settings) {
 export type SettingClass =
 	| BooleanSetting
 	| OptionSetting<StorageValue>
-	| ArraySetting<StorageValue>;
+	| ArraySetting<StorageValue>
+	| StringSetting;
 
 export enum SettingType {
 	ALL,
 	BOOLEAN,
 	OPTION,
 	ARRAY,
+	STRING,
 }
 
 export function getChildren(setting: SettingClass): SettingClass[] {
 	return setting.children.map((s) => getSetting(s, SettingType.ALL));
 }
 
+type location = 'local' | 'sync';
+
 abstract class Setting<T extends StorageValue> {
 	name: Settings;
 	label: string;
 	type?: SettingType;
+	displayInList: boolean;
 	defaultValue: T;
 	children: Settings[];
+	storage: location;
 
-	constructor(name: Settings, defaultValue: T, children?: Settings[]) {
+	constructor(
+		name: Settings,
+		defaultValue: T,
+		displayInList: boolean,
+		children?: Settings[],
+		location?: location
+	) {
 		this.name = name;
 		this.label = getLabel(name);
+		this.displayInList = displayInList;
 		this.defaultValue = defaultValue;
 		this.children = children || [];
+		this.storage = location || 'sync';
 	}
 
 	async getValue(): Promise<T> {
-		const storedValue = await storage.getItem<T>(`sync:${this.name}`);
+		const storedValue = await storage.getItem<T>(
+			`${this.storage}:${this.name}`
+		);
 
 		return storedValue === null ? this.defaultValue : storedValue;
 	}
 
-	setValue<T extends StorageValue>(value: T) {
-		storage.setItem<StorageValue>(`sync:${this.name}`, value);
+	setValue(value: T | null) {
+		storage.setItem(`${this.storage}:${this.name}`, value);
 	}
 }
 
 export class BooleanSetting extends Setting<boolean> {
 	readonly type = SettingType.BOOLEAN;
-	constructor(name: Settings, defaultValue: boolean, children?: Settings[]) {
-		super(name, defaultValue, children);
+	constructor(
+		name: Settings,
+		defaultValue: boolean,
+		displayInList: boolean,
+		children?: Settings[],
+		location?: location
+	) {
+		super(name, defaultValue, displayInList, children, location);
 	}
 }
 
@@ -70,10 +98,12 @@ export class OptionSetting<T> extends Setting<string> {
 	constructor(
 		name: Settings,
 		defaultValue: string,
+		displayInList: boolean,
 		availableValues: T[],
-		children?: Settings[]
+		children?: Settings[],
+		location?: location
 	) {
-		super(name, defaultValue, children);
+		super(name, defaultValue, displayInList, children, location);
 		this.availableValues = availableValues;
 	}
 }
@@ -85,10 +115,12 @@ export class ArraySetting<T> extends Setting<T[]> {
 	constructor(
 		name: Settings,
 		defaultValue: T[],
+		displayInList: boolean,
 		validator: (value: any) => ValidatorResponse,
-		children?: Settings[]
+		children?: Settings[],
+		location?: location
 	) {
-		super(name, defaultValue, children);
+		super(name, defaultValue, displayInList, children, location);
 		this.validator = validator;
 	}
 
@@ -119,37 +151,88 @@ export class ArraySetting<T> extends Setting<T[]> {
 	}
 }
 
+export class StringSetting extends Setting<string> {
+	readonly type = SettingType.STRING;
+	constructor(
+		name: Settings,
+		defaultValue: string,
+		displayInList: boolean,
+		children?: Settings[],
+		location?: location
+	) {
+		super(name, defaultValue, displayInList, children, location);
+	}
+}
+
 interface ValidatorResponse {
 	value: any;
 	errorMessage?: string;
 }
 
 export const SettingsList: SettingClass[] = [
-	new BooleanSetting(Settings.ENABLEYOUTUBE, true),
-	new BooleanSetting(Settings.ENABLENEBULA, true, [Settings.MATCHTOYOUTUBE]),
-	new BooleanSetting(Settings.MATCHTOYOUTUBE, true),
-	new BooleanSetting(Settings.COLLAPSEONLOAD, false),
-	new BooleanSetting(Settings.CHILDRENHIDDENDEFAULT, false),
-	new BooleanSetting(Settings.INCLUDENSFW, false),
+	new BooleanSetting(Settings.ENABLEYOUTUBE, true, true),
+	new BooleanSetting(Settings.ENABLENEBULA, true, true, [
+		Settings.MATCHTOYOUTUBE,
+	]),
+	new BooleanSetting(Settings.MATCHTOYOUTUBE, true, true),
+	new BooleanSetting(Settings.COLLAPSEONLOAD, false, true),
+	new BooleanSetting(Settings.CHILDRENHIDDENDEFAULT, false, true),
+	new BooleanSetting(Settings.INCLUDENSFW, false, true),
+	new BooleanSetting(Settings.SHOWREDDITRESULTS, true, true),
+
 	new OptionSetting(
 		Settings.DEFAULTSORT,
-		CommentSort.TOP,
-		Object.values(CommentSort)
+		RedditCommentSort.TOP,
+		true,
+		Object.values(RedditCommentSort)
 	),
-	new ArraySetting<string>(Settings.SUBBLACKLIST, [], (value: string) => {
-		const splitValue = value.toLowerCase().split('/').pop();
-		if (!splitValue) {
-			throw new Error('Value invalid, somehow...');
+	new ArraySetting<string>(
+		Settings.COMMUNITYBLACKLIST,
+		[],
+		true,
+		(value: string) => {
+			const splitValue = value
+				.trim()
+				.toLowerCase()
+				.split('/')
+				.pop()
+				?.split('!')
+				.pop();
+			if (!splitValue) {
+				throw new Error('Value invalid, somehow...');
+			}
+			const valid = /^[\w-@.]{3,}/.test(splitValue);
+			if (!valid) {
+				return <ValidatorResponse>{
+					value: value,
+					errorMessage: browser.i18n.getMessage('invalidSubreddit'),
+				};
+			}
+
+			const prefixedValue = splitValue.includes('@')
+				? `!${value}`
+				: `r/${value}`;
+			return { value: prefixedValue };
 		}
-		const valid = /^[a-zA-Z0-9_]{3,}/.test(splitValue);
-		if (!valid) {
-			return <ValidatorResponse>{
-				value: value,
-				errorMessage: browser.i18n.getMessage('invalidSubreddit'),
-			};
-		}
-		return { value: splitValue };
-	}),
+	),
+
+	new OptionSetting<ThreadSort>(
+		Settings.LASTSORT,
+		ThreadSort.COMMENTS,
+		false,
+		Object.values(ThreadSort),
+		undefined,
+		'local'
+	),
+	new StringSetting(Settings.LEMMYDOMAIN, '', false, undefined, 'local'),
+	new StringSetting(Settings.LEMMYTOKEN, '', false, undefined, 'local'),
+	new StringSetting(Settings.LEMMYUSERNAME, '', false, undefined, 'local'),
+	new OptionSetting(
+		Settings.DEFAULTSORTLEMMY,
+		LemmyCommentSort.TOP,
+		false,
+		Object.values(LemmyCommentSort)
+	),
 ];
 
 export function getSetting(name: Settings, type: SettingType.ALL): SettingClass;
@@ -157,6 +240,10 @@ export function getSetting(
 	name: Settings,
 	type: SettingType.BOOLEAN
 ): BooleanSetting;
+export function getSetting(
+	name: Settings,
+	type: SettingType.STRING
+): StringSetting;
 export function getSetting<T>(
 	name: Settings,
 	type: SettingType.OPTION

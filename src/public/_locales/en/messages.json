@@ -12,7 +12,10 @@
 		"message": "Loading threads..."
 	},
 	"addButton": {
-		"message": "Add..."
+		"message": "Add"
+	},
+	"setButton": {
+		"message": "Set"
 	},
 	"sortThreads": {
 		"message": "Sort:"
@@ -23,8 +26,8 @@
 	"comments": {
 		"message": "Comments"
 	},
-	"subreddit": {
-		"message": "Subreddit"
+	"community": {
+		"message": "Community"
 	},
 	"newest": {
 		"message": "Newest"
@@ -55,22 +58,14 @@
 	"otherError": {
 		"message": "Unknown error loading Reddit content. It is possible that Reddit is down or something in the extension went wrong."
 	},
-	"threadTagline": {
-		"message": "submitted $TIME$ by <a href='$DOMAIN$/user/$AUTHOR$' target='_blank'>$AUTHOR$</a> to <a id='rcfy-thread-subreddit' href='$DOMAIN$/r/$SUBREDDIT$' target='_blank'>r/$SUBREDDIT$</a>",
-		"placeholders": {
-			"time": {
-				"content": "$1"
-			},
-			"author": {
-				"content": "$2"
-			},
-			"subreddit": {
-				"content": "$3"
-			},
-			"domain": {
-				"content": "$4"
-			}
-		}
+	"submitted": {
+		"message": "submitted"
+	},
+	"by": {
+		"message": "by"
+	},
+	"to": {
+		"message": "to"
 	},
 	"moreAwards": {
 		"message": "& $NUMBER$ more",
@@ -84,12 +79,7 @@
 		"message": " - stickied comment"
 	},
 	"commentPoint": {
-		"message": "$POINTS$ point",
-		"placeholders": {
-			"points": {
-				"content": "$1"
-			}
-		}
+		"message": "1 point"
 	},
 	"commentPoints": {
 		"message": "$POINTS$ points",
@@ -176,6 +166,9 @@
 	},
 	"best": {
 		"message": "best"
+	},
+	"hot": {
+		"message": "hot"
 	},
 	"top": {
 		"message": "top"
@@ -279,13 +272,45 @@
 	"defaultSort": {
 		"message": "Default comment sort: "
 	},
-	"subBlacklist": {
-		"message": "Blacklist subreddits:"
+	"communityBlacklist": {
+		"message": "Blacklist communities:"
+	},
+	"showRedditResults": {
+		"message": "Show Reddit results when Lemmy domain is set."
 	},
 	"duplicateEntry": {
 		"message": "Duplicate entry, ignored."
 	},
 	"invalidSubreddit": {
 		"message": "Must be at least 3 letters, numbers, and underscores."
+	},
+	"instance": {
+		"message": "Instance (blank to disable)"
+	},
+	"username": {
+		"message": "Username"
+	},
+	"password": {
+		"message": "Password"
+	},
+	"twoFactorAuth": {
+		"message": "2FA (Optional)"
+	},
+	"login": {
+		"message": "Login"
+	},
+	"logout": {
+		"message": "Logout"
+	},
+	"loggedIn": {
+		"message": "Logged in as $USERNAME$",
+		"placeholders": {
+			"username": {
+				"content": "$1"
+			}
+		}
+	},
+	"loginToLemmy": {
+		"message": "Login to Lemmy"
 	}
 }

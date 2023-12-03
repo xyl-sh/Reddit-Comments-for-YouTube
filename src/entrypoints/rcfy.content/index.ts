@@ -1,10 +1,11 @@
-import { Site, SiteId, getSite } from '@/lib/types/Site';
+import { Site, getSite } from '@/lib/types/Site';
 import ThreadSelector from './components/ThreadSelector.svelte';
 import { SearchYouTubeRequest } from '@/lib/types/NetworkRequests';
 import { sendMessage } from '@/lib/messaging';
 import { siteStore, videoIdStore, youtubeIdStore } from './store';
 import { SettingType, Settings, getSetting } from '@/lib/settings';
 import './style.css';
+import { SiteId } from '@/lib/constants';
 
 export default defineContentScript({
 	matches: ['*://*.youtube.com/*', '*://*.nebula.tv/*'],
@@ -131,5 +132,16 @@ async function searchYouTube(
 		videoLength: videoElement.duration,
 	};
 
-	youtubeIdStore.set(await sendMessage('searchYouTube', searchYouTubeRequest));
+	const searchYouTubeResponse = await sendMessage(
+		'searchYouTube',
+		searchYouTubeRequest
+	);
+
+	if (!searchYouTubeResponse.success) {
+		console.error('searchYouTube', searchYouTubeResponse.errorMessage);
+	}
+
+	youtubeIdStore.set(
+		searchYouTubeResponse.success ? searchYouTubeResponse.value : null
+	);
 }

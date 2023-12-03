@@ -5,29 +5,22 @@ import {
 	GetCommentsRequest,
 	GetMoreChildrenRequest,
 	GetThreadsRequest,
-	Response,
+	LemmyLoginRequest,
 	SearchYouTubeRequest,
 	VoteRequest,
 } from './types/NetworkRequests';
-import {
-	Comment,
-	ExtraThreadInfo,
-	Me,
-	MoreChildren,
-	Thread,
-} from './types/RedditElements';
+import { CommentResponse, FetchResponse } from './types/NetworkResponses';
+import { Reply, Replies, Thread } from './types/Elements';
 
 interface ProtocolMap {
-	comment(r: CommentRequest): Response<Comment>;
+	comment(r: CommentRequest): FetchResponse<Reply>;
 	deleteComment(r: DeleteRequest): void;
-	getComments(
-		r: GetCommentsRequest
-	): [comments: (Comment | MoreChildren)[], info: ExtraThreadInfo];
-	getMe(): Me;
-	getMoreChildren(r: GetMoreChildrenRequest): (Comment | MoreChildren)[];
-	getThreads(r: GetThreadsRequest): Thread[];
+	getComments(r: GetCommentsRequest): FetchResponse<CommentResponse>;
+	getMoreChildren(r: GetMoreChildrenRequest): FetchResponse<Replies>;
+	getThreads(r: GetThreadsRequest): FetchResponse<Thread[]>;
 	vote(r: VoteRequest): void;
-	searchYouTube(r: SearchYouTubeRequest): string | null;
+	lemmyLogin(r: LemmyLoginRequest): FetchResponse<string>;
+	searchYouTube(r: SearchYouTubeRequest): FetchResponse<string | null>;
 }
 
 export const { sendMessage, onMessage } =

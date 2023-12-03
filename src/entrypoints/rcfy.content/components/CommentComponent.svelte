@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { REDDIT_LINK_DOMAIN, Kind, CommentSort } from '@/lib/constants';
-	import type { Comment } from '@/lib/types/RedditElements';
+	import { Kind, RedditCommentSort } from '@/lib/constants';
+	import type { Reply, Thread } from '@/lib/types/Elements';
 	import CommentContainer from './CommentContainer.svelte';
 	import Votes from './interactable/Votes.svelte';
 	import CommentButtons from './interactable/CommentButtons.svelte';
@@ -9,31 +9,17 @@
 	import TextBox from './interactable/TextBox.svelte';
 	import { SettingType, Settings, getSetting } from '@/lib/settings';
 
-	export let comment: Comment;
-	export let sort: CommentSort;
+	export let comment: Reply;
+	export let thread: Thread;
+	export let sort: RedditCommentSort;
 	export let username: string | undefined;
 	export let canPost: boolean;
 	export let canVote: boolean;
 
-	function fillContainer(commentElement: HTMLElement, bodyHtml: string) {
-		if (!commentElement) return;
-		commentElement.innerHTML = bodyHtml;
-		commentElement.querySelectorAll<HTMLAnchorElement>('a')!.forEach((e) => {
-			const href = e.getAttribute('href');
-			if (href?.startsWith('/')) {
-				e.href = `${REDDIT_LINK_DOMAIN}${href}`;
-			}
-			e.target = '_blank';
-		});
-	}
-
-	let commentElement: HTMLElement;
 	let childrenHidden: boolean;
 	let collapsed: boolean = false;
 	let editing: boolean = false;
 	let replying: boolean = false;
-
-	$: fillContainer(commentElement, comment.bodyHtml);
 
 	onMount(async () => {
 		childrenHidden =
@@ -46,8 +32,8 @@
 	});
 </script>
 
-<div>
-	<div class="votes" class:h-[1px]={collapsed}>
+<div class="comment-container">
+	<div class="votes" class:collapsed>
 		<Votes bind:element={comment} disabled={!canVote || collapsed} />
 	</div>
 	<div class="comment" class:collapsed>
@@ -60,13 +46,14 @@
 					bind:active={editing}
 				/>
 			{:else}
-				<div class="reddit-comment" bind:this={commentElement}></div>
+				<div class="reddit-comment">
+					{@html comment.bodyHtml}
+				</div>
 			{/if}
 			<CommentButtons
-				id={comment.fullId}
-				link={comment.link}
+				{comment}
 				canPost={canPost && !comment.locked}
-				isUser={comment.author === username}
+				isUser={comment.authorLink === username}
 				showHideChildren={!!comment.replies.find(
 					(c) => c.kind === Kind.COMMENT
 				)}
@@ -76,26 +63,28 @@
 			/>
 		{/if}
 	</div>
-</div>
-<div class="children">
-	{#if !isNaN(Number(comment?.replies?.length))}
-		{#if replying && !collapsed}
-			<TextBox
-				bind:parentElement={comment}
-				startingValue={undefined}
-				bind:active={replying}
-			/>
+
+	<div class="children">
+		{#if !isNaN(Number(comment?.replies?.length))}
+			{#if replying && !collapsed}
+				<TextBox
+					bind:parentElement={comment}
+					startingValue={undefined}
+					bind:active={replying}
+				/>
+			{/if}
+			<div class:children-hidden={childrenHidden || collapsed}>
+				<CommentContainer
+					bind:replies={comment.replies}
+					bind:thread
+					{username}
+					{canPost}
+					{canVote}
+					bind:commentSort={sort}
+				/>
+			</div>
 		{/if}
-		<div class:children-hidden={childrenHidden || collapsed}>
-			<CommentContainer
-				bind:replies={comment.replies}
-				{username}
-				{canPost}
-				{canVote}
-				bind:commentSort={sort}
-			/>
-		</div>
-	{/if}
+	</div>
 </div>
 
 <style lang="postcss">
@@ -106,6 +95,10 @@
 
 	.votes {
 		@apply float-left mr-[7px];
+
+		&.collapsed {
+			@apply h-[1px];
+		}
 	}
 
 	.comment {
@@ -113,40 +106,59 @@
 	}
 
 	.children {
-		@apply my-[10px] ml-[15px] border-l-separator border-dotted;
+		@apply my-[10px] ml-[15px] border-l-separator border-dotted border-0 border-l-[1px];
+
+		:global(.comment-container) {
+			@apply ml-[10px];
+		}
 	}
 
+	/* wrapped in global to avoid Svelte removing unused classes */
 	.reddit-comment {
-		@apply text-[14px] text-primary [&_*]:my-[5px] [&_blockquote]:text-secondary;
-	}
+		@apply text-[14px] text-primary;
 
-	.reddit-comment a {
-		@apply text-link;
-	}
+		:global(*) {
+			@apply my-[5px];
+		}
 
-	.reddit-comment blockquote {
-		@apply text-secondary px-2 ml-[5px] border-l-2 border-l-separator;
-	}
+		:global(a),
+		:global(button) {
+			@apply plain-button;
 
-	.reddit-comment pre {
-		@apply bg-interactable border-interactable rounded-sm py-1 px-[9px];
-	}
+			&:not([onclick*='spoiler']) {
+				@apply text-link;
+			}
+		}
 
-	.reddit-comment ol,
-	.reddit-comment ul {
-		@apply list-decimal pl-10;
-	}
+		:global(button.reddit-spoiler) {
+			@apply bg-[var(--subtle-link-text)] text-transparent;
+		}
 
-	.reddit-comment table {
-		@apply border-collapse;
-	}
+		:global(blockquote) {
+			@apply text-secondary px-2 ml-[5px] border-0 border-l-2 border-l-separator border-solid;
+		}
 
-	.reddit-comment th,
-	.reddit-comment td {
-		@apply p-[5px] border-[1px] border-blockquote;
-	}
+		:global(pre) {
+			@apply bg-interactable border-interactable rounded-sm py-1 px-[9px];
+		}
 
-	.reddit-comment code {
-		@apply mx-0.5 break-normal leading-5;
+		:global(ol),
+		:global(ul) {
+			@apply pl-10;
+			list-style: auto;
+		}
+
+		:global(table) {
+			@apply border-collapse;
+		}
+
+		:global(th),
+		:global(td) {
+			@apply p-[5px] border-[1px] border-blockquote;
+		}
+
+		:global(code) {
+			@apply mx-0.5 break-normal leading-5;
+		}
 	}
 </style>

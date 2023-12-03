@@ -1,107 +1,184 @@
-import { Kind, REDDIT_API_DOMAIN, REDDIT_LINK_DOMAIN } from '@/lib/constants';
+import { REDDIT_API_DOMAIN, SiteId } from '@/lib/constants';
+import {
+	lemmyThreadToThread,
+	redditThreadToThread,
+} from '@/lib/mappers/ThreadMapper';
 import { SettingType, Settings, getSetting } from '@/lib/settings';
-import { parseTimestamp } from '@/lib/tools/TimeTools';
-import { GetThreadsRequest } from '@/lib/types/NetworkRequests';
-import { Thread } from '@/lib/types/RedditElements';
-import { getSiteById, SiteId } from '@/lib/types/Site';
+import { buildLemmyUrl, fetchCatch } from '@/lib/tools/RequestTools';
+import type { GetThreadsRequest } from '@/lib/types/NetworkRequests';
+import type { FetchResponse } from '@/lib/types/NetworkResponses';
+import type { Thread } from '@/lib/types/Elements';
+import { getSiteById, type Site } from '@/lib/types/Site';
+import { resetUser } from './GetUser';
 
-async function getPage(url: URL) {
-	const threads: any[] = [];
-	const response = await fetch(url);
-	const responseJson = await response.json();
+const lemmyDomain = getSetting(Settings.LEMMYDOMAIN, SettingType.STRING);
+
+async function getRedditPage(url: URL): Promise<FetchResponse<Thread[]>> {
+	const threads: Thread[] = [];
+	const response = await fetchCatch(url);
+
+	if (!response.success) {
+		return response;
+	}
+
+	const responseJson = await response.value.json();
 	const nextPage = responseJson?.data?.after;
 
-	responseJson?.data?.children?.forEach((t: any) => threads.push(t));
+	responseJson?.data?.children?.forEach((t: any) =>
+		threads.push(redditThreadToThread(t))
+	);
 
 	if (!nextPage) {
-		return threads;
+		return { success: true, value: threads };
 	}
 
 	url.searchParams.set('after', nextPage);
 
-	const moreThreads = await getPage(url);
-	threads.push(...moreThreads);
+	const moreThreads = await getRedditPage(url);
+	if (moreThreads.success) {
+		threads.push(...moreThreads.value);
+	}
 
-	return threads;
+	return { success: true, value: threads };
 }
 
-function mapDomains(domains: string[], videoId: string, includeNSFW: boolean) {
-	return domains.map((d) => {
+async function getLemmyPage(
+	url: URL,
+	page: number
+): Promise<FetchResponse<Thread[]>> {
+	const threads: Thread[] = [];
+
+	url.searchParams.set('page', page.toString());
+
+	const response = await fetchCatch(url);
+
+	if (!response.success) {
+		return response;
+	}
+
+	const responseJson = await response.value.json();
+
+	await responseJson?.posts?.forEach(async (t: any) =>
+		threads.push(await lemmyThreadToThread(t))
+	);
+
+	if (!responseJson?.posts?.length) {
+		return { success: true, value: threads };
+	}
+
+	const moreThreads = await getLemmyPage(url, page + 1);
+	if (moreThreads.success) {
+		threads.push(...moreThreads.value);
+	}
+
+	return { success: true, value: threads };
+}
+
+async function mapRedditQueries(
+	site: Site,
+	videoId: string,
+	includeNSFW: boolean
+) {
+	if (
+		!(await getSetting(
+			Settings.SHOWREDDITRESULTS,
+			SettingType.BOOLEAN
+		).getValue()) &&
+		(await lemmyDomain.getValue())
+	) {
+		return [];
+	}
+	return site.domains.flatMap((d) => {
 		const url = new URL(`${REDDIT_API_DOMAIN}/search.json`);
+		url.searchParams.set('q', `url:${videoId}+site:${d}`);
 		url.searchParams.set('limit', '100');
 		url.searchParams.set('sort', 'top');
-		url.searchParams.set('q', `url:${videoId}+site:${d}`);
 		url.searchParams.set('include_over_18', includeNSFW.toString());
+
 		return url;
 	});
 }
 
-async function getThreads(r: GetThreadsRequest) {
+async function mapLemmyQueries(site: Site, videoId: string) {
+	if (!(await lemmyDomain.getValue())) {
+		return [];
+	}
+	const urls = site.templates.map((t) => t.replace('videoId', videoId));
+	const token = await getSetting(
+		Settings.LEMMYTOKEN,
+		SettingType.STRING
+	).getValue();
+	return await Promise.all(
+		urls.flatMap(async (u) => {
+			const url = new URL(await buildLemmyUrl('search', true));
+			url.searchParams.set('q', u);
+			url.searchParams.set('sort', 'TopAll');
+			url.searchParams.set('type_', 'Url');
+			if (token) {
+				url.searchParams.set('auth', token);
+			}
+			return url;
+		})
+	);
+}
+
+async function getThreads(
+	r: GetThreadsRequest
+): Promise<FetchResponse<Thread[]>> {
+	resetUser();
 	const includeNSFW = await getSetting(
 		Settings.INCLUDENSFW,
 		SettingType.BOOLEAN
 	).getValue();
 
-	const urls = mapDomains(r.site.domains, r.videoId, includeNSFW);
+	const urls = await mapRedditQueries(r.site, r.videoId, includeNSFW);
+	const lemmyUrls = await mapLemmyQueries(r.site, r.videoId);
 
 	if (r.site.canMatchYouTube && r.youtubeId) {
-		const youtubeDomains = getSiteById(SiteId.YOUTUBE).domains;
-		const youtubeSearchUrls = mapDomains(
-			youtubeDomains,
+		const youtube = getSiteById(SiteId.YOUTUBE);
+		const youtubeSearchUrls = await mapRedditQueries(
+			youtube,
 			r.youtubeId,
 			includeNSFW
 		);
 		urls.push(...youtubeSearchUrls);
+
+		const youtubeLemmyUrls = await mapLemmyQueries(youtube, r.youtubeId);
+		lemmyUrls.push(...youtubeLemmyUrls);
 	}
 
-	const threads: any[] = [];
-	const results = await Promise.all(urls.map(async (url) => getPage(url)));
-	results.forEach((t) => {
-		if (!t) {
-			return;
-		}
-		threads.push(...t);
-	});
-
-	const subredditBlacklist = await getSetting<string>(
-		Settings.SUBBLACKLIST,
+	const communityBlacklist = await getSetting<string>(
+		Settings.COMMUNITYBLACKLIST,
 		SettingType.ARRAY
 	).getValue();
-	const response: Thread[] = threads.flatMap((r) => {
-		const d = r.data;
-		if (subredditBlacklist.includes(d.subreddit)) {
+
+	const threads = await Promise.all(
+		[
+			urls.map(async (url) => getRedditPage(url)),
+			lemmyUrls.map(async (url) => getLemmyPage(url, 1)),
+		].flat()
+	);
+
+	if (!threads.find((t) => t.success === true)) {
+		return { success: false, errorMessage: "Couldn't get threads" };
+	}
+
+	const ids: string[] = [];
+	const response = threads.flatMap((l) => {
+		if (!l.success) {
 			return [];
 		}
-		const linkedUrl = new URL(d.url.replaceAll('&amp;', '&'));
-		const timestampParam = linkedUrl.searchParams.get('t');
 
-		const titlePrefix = `r/${d.subreddit}, ${d.score}⇧, ${d.num_comments}💬`;
-		const userVote = d.likes === null ? 0 : d.likes ? 1 : -1;
-
-		const mappedData: Thread = {
-			kind: Kind.THREAD,
-			id: d.id,
-			fullId: d.name,
-			title: `${titlePrefix}\r\n${d.title}`,
-			plainTitle: d.title,
-			author: d.author,
-			link: REDDIT_LINK_DOMAIN + d.permalink,
-			linkedTimestamp: timestampParam ? parseTimestamp(timestampParam) : null,
-			subreddit: d.subreddit,
-			score: d.score - userVote,
-			comments: d.num_comments,
-			createdTimestamp: d.created,
-			userVote: userVote,
-			archived: d.archived,
-			locked: d.locked,
-			replies: [],
-			info: undefined,
-		};
-
-		return [mappedData];
+		return l.value.filter((t) => {
+			if (ids.includes(t.fullId)) {
+				return;
+			}
+			ids.push(t.fullId);
+			return !communityBlacklist.includes(t.community);
+		});
 	});
 
-	return response;
+	return { success: true, value: response };
 }
 
 export { getThreads };

@@ -4,17 +4,23 @@ export const REDDIT_API_DOMAIN = 'https://api.reddit.com';
 export enum ThreadSort {
 	SCORE = 'score',
 	COMMENTS = 'comments',
-	SUBREDDIT = 'subreddit',
+	COMMUNITY = 'community',
 	NEWEST = 'newest',
 }
 
-export enum CommentSort {
+export enum RedditCommentSort {
 	BEST = 'best',
 	TOP = 'top',
 	NEW = 'new',
 	CONTROVERSIAL = 'controversial',
 	OLD = 'old',
 	QA = 'qa',
+}
+
+export enum LemmyCommentSort {
+	HOT = 'Hot',
+	TOP = 'Top',
+	NEW = 'New',
 }
 
 export enum Interactions {
@@ -30,4 +36,14 @@ export enum Kind {
 	THREAD = 't3',
 	SUBREDDIT = 't5',
 	MORE = 'more',
+}
+
+export enum SiteId {
+	YOUTUBE = 'youtube',
+	NEBULA = 'nebula',
+}
+
+export enum Website {
+	REDDIT,
+	LEMMY,
 }

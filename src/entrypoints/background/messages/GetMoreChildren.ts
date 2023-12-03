@@ -1,30 +1,50 @@
-import { REDDIT_API_DOMAIN } from '@/lib/constants';
-import { GetMoreChildrenRequest } from '@/lib/types/NetworkRequests';
-import { mapComments } from './GetComments';
-import { objectToFormData } from '@/lib/tools/RequestTools';
-import { Comment, MoreChildren } from '@/lib/types/RedditElements';
+import {
+	LemmyCommentSort,
+	REDDIT_API_DOMAIN,
+	RedditCommentSort,
+	Website,
+} from '@/lib/constants';
+import type { GetMoreChildrenRequest } from '@/lib/types/NetworkRequests';
+import type { Reply, MoreReplies, Replies } from '@/lib/types/Elements';
+import {
+	lemmyCommentsToComments,
+	redditCommentsToComments,
+} from '@/lib/mappers/CommentMapper';
+import { buildLemmyUrl, fetchCatch } from '@/lib/tools/RequestTools';
+import type { FetchResponse } from '@/lib/types/NetworkResponses';
+import { getSetting, Settings, SettingType } from '@/lib/settings';
 
-async function getMoreChildren(
-	r: GetMoreChildrenRequest
-): Promise<(Comment | MoreChildren)[]> {
-	const formData = objectToFormData(r);
+async function getMoreChildrenReddit(
+	moreChildren: MoreReplies,
+	sort: RedditCommentSort
+): Promise<FetchResponse<Replies>> {
+	const formData = new FormData();
+	formData.append('id', moreChildren.fullId);
+	formData.append('parent', moreChildren.parent);
+	formData.append('link_id', moreChildren.threadId);
+	formData.append('children', moreChildren.children.join(','));
+	formData.append('sort', sort);
 	formData.append('limit_children', 'false');
 	formData.append('raw_json', '1');
 	formData.append('api_type', 'json');
 
-	const response = await fetch(`${REDDIT_API_DOMAIN}/api/morechildren`, {
+	const response = await fetchCatch(`${REDDIT_API_DOMAIN}/api/morechildren`, {
 		method: 'POST',
 		body: formData,
 	});
-	const jsonReponse = await response.json();
 
-	const moreComments = mapComments(
+	if (!response.success) {
+		return response;
+	}
+	const jsonReponse = await response.value.json();
+
+	const moreComments = await redditCommentsToComments(
 		jsonReponse.json.data.things,
-		r.link_id.split('_')[1]
+		moreChildren.threadId.split('_')[1]
 	);
 	moreComments.forEach((c) => {
-		const parent = moreComments.find<Comment>(
-			(p): p is Exclude<typeof p, MoreChildren> => p.fullId === c.parent
+		const parent = moreComments.find<Reply>(
+			(p): p is Exclude<typeof p, MoreReplies> => p.fullId === c.parent
 		);
 		if (!parent) {
 			return;
@@ -33,9 +53,78 @@ async function getMoreChildren(
 		parent.replies.push(c);
 	});
 
-	const parentComments = moreComments.filter((c) => r.parent === c.parent);
+	const parentComments = moreComments.filter(
+		(c) => moreChildren.parent === c.parent
+	);
 
-	return parentComments;
+	return { success: true, value: parentComments };
+}
+
+async function getMoreChildrenLemmy(
+	moreChildren: MoreReplies,
+	sort: LemmyCommentSort,
+	page: number
+): Promise<FetchResponse<Replies>> {
+	const topLevel = moreChildren.parent === moreChildren.threadId;
+	const token = await getSetting(
+		Settings.LEMMYTOKEN,
+		SettingType.STRING
+	).getValue();
+
+	const url = new URL(await buildLemmyUrl(`comment/list`, true));
+
+	if (topLevel) {
+		url.searchParams.append('post_id', moreChildren.threadId);
+		url.searchParams.append('limit', '50');
+		url.searchParams.append('page', page.toString());
+	} else {
+		url.searchParams.append('parent_id', moreChildren.parent);
+		url.searchParams.append('max_depth', '8');
+		url.searchParams.append('limit', '999');
+		url.searchParams.append('type_', 'All');
+	}
+
+	if (token) {
+		url.searchParams.append('auth', token);
+	}
+	url.searchParams.append('sort', sort);
+
+	const response = await fetchCatch(url);
+
+	if (!response.success) {
+		return response;
+	}
+	const jsonReponse = await response.value.json();
+
+	if (!jsonReponse.comments) {
+		return { success: false, errorMessage: 'Failed to get comments.' };
+	}
+
+	const mappedComments = await lemmyCommentsToComments(
+		jsonReponse.comments,
+		moreChildren.threadId,
+		topLevel ? '0' : moreChildren.parent
+	);
+
+	return {
+		success: true,
+		value: mappedComments,
+	};
+}
+
+async function getMoreChildren(
+	r: GetMoreChildrenRequest
+): Promise<FetchResponse<Replies>> {
+	switch (r.moreChildren.website) {
+		case Website.REDDIT:
+			return getMoreChildrenReddit(r.moreChildren, r.sort as RedditCommentSort);
+		case Website.LEMMY:
+			return getMoreChildrenLemmy(
+				r.moreChildren,
+				r.sort as LemmyCommentSort,
+				r.page
+			);
+	}
 }
 
 export { getMoreChildren };

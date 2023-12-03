@@ -10,15 +10,24 @@
 	});
 </script>
 
-<div class="flex gap-1 justify-start items-start">
+<div class="checkbox-container">
 	<input
-		class="mt-0.5"
-		id="{setting.name}"
+		id={setting.name}
 		type="checkbox"
-		bind:checked="{isEnabled}"
-		on:change="{() => setting.setValue(isEnabled)}"
-	/><label for="{setting.name}">{setting.label}</label>
+		bind:checked={isEnabled}
+		on:change={() => setting.setValue(isEnabled)}
+	/><label for={setting.name}>{setting.label}</label>
 </div>
 {#if setting.children.length && isEnabled}
-	<SettingContainer settings="{getChildren(setting)}" />
+	<SettingContainer settings={getChildren(setting)} />
 {/if}
+
+<style lang="postcss">
+	.checkbox-container {
+		@apply flex gap-1 justify-start items-start;
+
+		input {
+			@apply mt-0.5;
+		}
+	}
+</style>

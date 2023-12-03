@@ -91,3 +91,8 @@ export function timestampToRelativeTime(timestamp: number) {
 		]);
 	}
 }
+
+export function lemmyTimestampToEpoch(timestamp: string) {
+	const utcTime = `${timestamp}+00:00`;
+	return ~~(Date.parse(utcTime) / 1000);
+}

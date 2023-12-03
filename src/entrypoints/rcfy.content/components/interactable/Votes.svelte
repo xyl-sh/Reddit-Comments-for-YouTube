@@ -1,68 +1,74 @@
 <script lang="ts">
-	import { Interactions, Kind } from '@/lib/constants';
+	import { Kind } from '@/lib/constants';
 	import { sendMessage } from '@/lib/messaging';
 	import type { VoteRequest } from '@/lib/types/NetworkRequests';
-	import type { Comment, Thread } from '@/lib/types/RedditElements';
+	import type { Reply, Thread } from '@/lib/types/Elements';
+	import { getScore } from '@/lib/tools/StringTools';
 
-	export let element: Thread | Comment;
+	export let element: Thread | Reply;
 	export let disabled: boolean;
+
+	$: disabled;
 
 	function vote(direction: 1 | -1) {
 		if (disabled) return;
 		element.userVote = direction === element.userVote ? 0 : direction;
 
 		const voteRequest: VoteRequest = {
-			interaction: Interactions.VOTE,
-			formData: {
-				id: element.fullId,
-				dir: element.userVote,
-				rank: 2,
-			},
+			kind: element.kind,
+			website: element.website,
+			id: element.fullId,
+			vote: element.userVote,
 		};
 
 		sendMessage('vote', voteRequest);
 	}
+
+	let scoreTotal: number;
+	let scoreString: string;
+	$: scoreTotal = element.score + element.userVote;
+	$: scoreString = getScore(scoreTotal, false);
 </script>
 
 <button
 	on:click={() => vote(1)}
 	class:upvote={element.userVote !== 1}
 	class:upvoted={element.userVote === 1}
-	class:votes-disabled={disabled}
+	{disabled}
 ></button>
 {#if element.kind === Kind.THREAD}
-	<span class="score">{element.score + element.userVote}</span>
+	<span class="score">{scoreString}</span>
 {/if}
 <button
 	on:click={() => vote(-1)}
 	class:downvote={element.userVote !== -1}
 	class:downvoted={element.userVote === -1}
-	class:votes-disabled={disabled}
+	{disabled}
 ></button>
 
 <style lang="postcss">
-	.upvoted {
-		@apply bg-left-top;
-	}
-
-	.upvote {
-		@apply bg-right-top;
-	}
-
-	.downvoted {
-		@apply bg-left-bottom;
-	}
-
-	.downvote {
-		@apply bg-right-bottom;
-	}
-
 	button {
-		@apply mt-0.5 mx-auto h-[14px] w-[15px] bg-arrows block;
-	}
+		@apply plain-button mt-[2px] mx-auto h-[14px] w-[15px] bg-arrows block;
 
-	.votes-disabled {
-		@apply invisible;
+		&.upvoted {
+			@apply bg-left-top;
+		}
+
+		&.upvote {
+			@apply bg-right-top;
+		}
+
+		&.downvoted {
+			@apply bg-left-bottom;
+		}
+
+		&.downvote {
+			@apply bg-right-bottom;
+		}
+
+		&:disabled {
+			@apply invisible;
+		}
 	}
 
 	.score {

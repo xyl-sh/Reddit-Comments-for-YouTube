@@ -3,7 +3,9 @@ module.exports = {
 	darkMode: 'class',
 	content: ['./**/*.{html,js,svelte,ts}'],
 	plugins: [],
-
+	corePlugins: {
+		preflight: false,
+	},
 	theme: {
 		extend: {
 			textColor: {
@@ -41,6 +43,10 @@ module.exports = {
 
 			margin: {
 				container: 'var(--container-margin)',
+			},
+
+			borderWidth: {
+				interactable: 'var(--interactable-border-width)',
 			},
 
 			borderColor: {

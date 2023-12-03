@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Interactions, Kind } from '@/lib/constants';
+	import { Kind } from '@/lib/constants';
 	import { sendMessage } from '@/lib/messaging';
 	import type { CommentRequest } from '@/lib/types/NetworkRequests';
-	import type { Comment, Thread } from '@/lib/types/RedditElements';
+	import type { Reply, Thread } from '@/lib/types/Elements';
 
-	export let parentElement: Comment | Thread;
+	export let parentElement: Reply | Thread;
 	export let startingValue: string | undefined;
 	export let active: boolean;
 
@@ -13,12 +13,14 @@
 
 	async function submit() {
 		const commentRequest: CommentRequest = {
-			interaction:
-				startingValue === undefined ? Interactions.COMMENT : Interactions.EDIT,
-			formData: {
-				thing_id: parentElement.fullId,
-				text: textAreaValue,
-			},
+			website: parentElement.website,
+			id: parentElement.fullId,
+			text: textAreaValue,
+			isEdit: !!startingValue,
+			threadId:
+				parentElement.kind === Kind.COMMENT
+					? parentElement.thread
+					: parentElement.fullId,
 		};
 
 		const response = await sendMessage('comment', commentRequest);
@@ -35,6 +37,7 @@
 		} else {
 			parentElement.replies.unshift(response.value);
 			parentElement.replies = parentElement.replies;
+			parentElement = parentElement;
 		}
 
 		if (parentElement.kind === Kind.COMMENT) {
@@ -69,7 +72,7 @@
 
 <style lang="postcss">
 	.textbox {
-		@apply flex flex-col gap-[5px] m-[5px];
+		@apply flex flex-col gap-[5px];
 	}
 
 	textarea {
@@ -81,11 +84,11 @@
 	}
 
 	.error {
-		@apply text-red-600 text-xs;
+		@apply text-[#CC0000] text-xs;
 	}
 
 	button {
-		@apply text-primary bg-interactable border-interactable border-[1px] rounded-small p-[3px];
+		@apply plain-button text-primary bg-interactable border-interactable border-solid border-[1px] rounded-small p-[3px];
 		font-size: revert;
 	}
 </style>

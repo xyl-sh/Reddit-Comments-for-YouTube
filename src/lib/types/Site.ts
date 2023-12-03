@@ -1,7 +1,4 @@
-export enum SiteId {
-	YOUTUBE = 'youtube',
-	NEBULA = 'nebula',
-}
+import { SiteId } from '../constants';
 
 enum AnchorType {
 	BEFOREBEGIN = 'beforebegin',
@@ -10,7 +7,7 @@ enum AnchorType {
 	AFTEREND = 'afterend',
 }
 
-export interface Site {
+export type Site = {
 	id: SiteId;
 	idRegex: RegExp;
 	anchorType: AnchorType;
@@ -20,7 +17,8 @@ export interface Site {
 	videoElement: string;
 	canMatchYouTube: boolean;
 	domains: string[];
-}
+	templates: string[];
+};
 
 const Sites: Site[] = [
 	{
@@ -33,6 +31,10 @@ const Sites: Site[] = [
 		videoElement: '.video-stream',
 		canMatchYouTube: false,
 		domains: ['www.youtube.com', 'youtu.be'],
+		templates: [
+			'https://www.youtube.com/watch?videoId',
+			'https://youtu.be/videoId',
+		],
 	},
 	{
 		id: SiteId.NEBULA,
@@ -44,6 +46,7 @@ const Sites: Site[] = [
 		videoElement: '#video-player video',
 		canMatchYouTube: false,
 		domains: ['nebula.tv'],
+		templates: ['https://nebula.tv/videos/videoId'],
 	},
 ];
 

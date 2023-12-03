@@ -8,6 +8,7 @@
 	--option-background: var(--interactable-background);
 	--hover-background: #f7f7f7;
 	--interactable-border: #d4d4d5;
+	--interactable-border-width: 1px;
 	--separator-border: #9999991a;
 	--container-margin: 30px 0;
 	--header-size: 17px;

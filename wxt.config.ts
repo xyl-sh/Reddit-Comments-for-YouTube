@@ -20,7 +20,14 @@ export default defineConfig({
 		name: '__MSG_extensionName__',
 		description: '__MSG_extensionDescription__',
 		default_locale: 'en',
-		permissions: ['storage'],
+		permissions: ['storage', '*://www.youtube.com/', '*://*.nebula.tv/'],
 		host_permissions: ['*://*.nebula.tv/', '*://api.reddit.com/'],
+		optional_permissions: ['https://*/*'],
+		optional_host_permissions: ['https://*/*'],
+		browser_specific_settings: {
+			gecko: {
+				id: 'rcfy@xyl.sh',
+			},
+		},
 	},
 });

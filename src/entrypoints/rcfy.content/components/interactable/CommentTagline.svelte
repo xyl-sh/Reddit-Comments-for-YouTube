@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { REDDIT_LINK_DOMAIN } from '@/lib/constants';
+	import { getScore } from '@/lib/tools/StringTools';
 	import { timestampToRelativeTime } from '@/lib/tools/TimeTools';
-	import type { Comment } from '@/lib/types/RedditElements';
+	import type { Reply } from '@/lib/types/Elements';
 
-	export let comment: Comment;
+	export let comment: Reply;
 	export let collapsed: boolean;
 
 	const stickiedCommentMessage = browser.i18n.getMessage('stickiedComment');
@@ -11,9 +12,7 @@
 	$: score = comment.score + comment.userVote;
 	$: scoreMessage = comment.scoreHidden
 		? browser.i18n.getMessage('commentScoreHidden')
-		: Math.abs(score) === 1
-		  ? browser.i18n.getMessage('commentPoint', score.toString())
-		  : browser.i18n.getMessage('commentPoints', score.toString());
+		: getScore(score, true);
 
 	const editedTimestamp = comment.editedTimestamp
 		? browser.i18n.getMessage('commentEdited', [
@@ -32,10 +31,7 @@
 </script>
 
 <p class:collapsed>
-	<button
-		class:plain-button-link={!collapsed}
-		class:plain-button={collapsed}
-		on:click={() => (collapsed = !collapsed)}
+	<button on:click={() => (collapsed = !collapsed)}
 		>{collapsed ? '[＋]' : '[－]'}</button
 	>
 	{#if comment.author === '[deleted]'}
@@ -44,7 +40,7 @@
 		<a
 			class="author"
 			style="background: {distinguishedColor}"
-			href="{REDDIT_LINK_DOMAIN}/user/{comment.author}"
+			href={comment.authorLink}
 			target="_blank"
 			class:distinguished={comment.distinguishedPoster}>{comment.author}</a
 		>
@@ -70,7 +66,19 @@
 		@apply text-secondary text-[11px];
 	}
 
+	a,
 	button {
+		@apply plain-button;
+	}
+
+	button {
+		:not(.collapsed) > & {
+			@apply text-link;
+		}
+
+		.collapsed & {
+			@apply text-secondary;
+		}
 	}
 
 	.deleted {
@@ -79,6 +87,10 @@
 
 	.author {
 		@apply text-link font-bold mr-[5px];
+
+		&:hover {
+			@apply underline;
+		}
 	}
 
 	.score {
@@ -93,7 +105,13 @@
 		@apply font-bold text-white p-0.5 rounded-sm;
 	}
 
-	.collapsed *:not(button) {
-		@apply text-secondary italic;
+	.collapsed {
+		*:not(button):not(.distinguished) {
+			@apply text-secondary;
+		}
+
+		*:not(button) {
+			@apply italic;
+		}
 	}
 </style>

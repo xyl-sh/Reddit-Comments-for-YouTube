@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { Interactions } from '@/lib/constants';
 	import { sendMessage } from '@/lib/messaging';
-	import { type DeleteRequest } from '@/lib/types/NetworkRequests';
+	import type { DeleteRequest } from '@/lib/types/NetworkRequests';
+	import type { Reply } from '@/lib/types/Elements';
 
-	export let id: string;
-	export let link: string;
+	export let comment: Reply;
 	export let canPost: boolean;
 	export let isUser: boolean;
 	export let showHideChildren: boolean;
@@ -23,10 +22,8 @@
 
 	function deleteComment() {
 		const deleteRequest: DeleteRequest = {
-			interaction: Interactions.DELETE,
-			formData: {
-				id: id,
-			},
+			website: comment.website,
+			id: comment.fullId,
 		};
 
 		sendMessage('deleteComment', deleteRequest);
@@ -43,7 +40,7 @@
 </script>
 
 <div class="comment-buttons">
-	<a href={link} target="_blank">{permalinkLabel}</a>
+	<a href={comment.link} target="_blank">{permalinkLabel}</a>
 	{#if canPost}
 		<button
 			on:click={() => {
@@ -80,12 +77,22 @@
 </div>
 
 <style lang="postcss">
-	.comment-buttons {
-		@apply flex gap-[8px] [&>*]:plain-button [&>*]:text-secondary [&>*]:font-bold [&_*]:text-[10px] [&_*]:leading-4;
+	a,
+	button {
+		@apply plain-button;
 	}
 
-	.comment-buttons > * {
-		@apply hover:underline;
+	.comment-buttons {
+		@apply flex gap-[8px];
+
+		* {
+			@apply text-[10px] leading-[16px];
+		}
+
+		button,
+		a {
+			@apply text-secondary font-bold  hover:underline;
+		}
 	}
 
 	.deleting {

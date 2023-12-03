@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { siteStore, videoIdStore, youtubeIdStore } from '../store';
 	import { sendMessage } from '@/lib/messaging';
-	import type { Thread } from '@/lib/types/RedditElements';
+	import type { Thread } from '@/lib/types/Elements';
 	import type { GetThreadsRequest } from '@/lib/types/NetworkRequests';
 	import { onMount } from 'svelte';
 	import ThreadComponent from './ThreadComponent.svelte';
@@ -10,7 +10,7 @@
 	import type { SelectOption } from './interactable/CustomSelect.svelte';
 	import { SettingType, Settings, getSetting } from '@/lib/settings';
 
-	let defaultThreadSort: SelectOption;
+	const lastSortSetting = getSetting(Settings.LASTSORT, SettingType.OPTION);
 
 	function sortThreads(o: SelectOption) {
 		selectedSort = o;
@@ -24,7 +24,7 @@
 		if (!selectedSort || !threads) {
 			return;
 		}
-		storage.setItem<ThreadSort>('local:lastSort', sort);
+		lastSortSetting.setValue(sort);
 		threads.sort((a, b) => {
 			let conditionA, conditionB;
 			switch (sort) {
@@ -43,9 +43,9 @@
 					conditionB = a.score;
 					break;
 
-				case ThreadSort.SUBREDDIT:
-					conditionA = a.subreddit.toLowerCase();
-					conditionB = b.subreddit.toLowerCase();
+				case ThreadSort.COMMUNITY:
+					conditionA = a.community.toLowerCase();
+					conditionB = b.community.toLowerCase();
 					break;
 
 				default:
@@ -69,39 +69,52 @@
 					title: t.title,
 				}
 		);
+		setThread(threadOptions[0]);
 	}
 
 	async function getThreads() {
+		errorMessage = undefined;
+
 		const getThreadsRequest: GetThreadsRequest = {
 			site: $siteStore,
 			videoId: $videoIdStore,
 			youtubeId: $youtubeIdStore!,
 		};
 
-		threads = await sendMessage('getThreads', getThreadsRequest);
+		const response = await sendMessage('getThreads', getThreadsRequest);
 
-		statusMessage =
+		if (!response.success) {
+			errorMessage = response.errorMessage;
+			return;
+		}
+
+		threads = response.value;
+
+		threadCount =
 			threads?.length === 1
 				? browser.i18n.getMessage('oneThread')
 				: browser.i18n.getMessage('threadCount', [`${threads.length}`]);
 
+		isLoading = false;
 		sortThreads(selectedSort);
 	}
 
 	const headerMessage = browser.i18n.getMessage('header');
 	const sortMessage = browser.i18n.getMessage('sortThreads');
 	const noThreadsMessage = browser.i18n.getMessage('noThreads');
-	let statusMessage = browser.i18n.getMessage('loadingThreads');
+	let threadCount = browser.i18n.getMessage('loadingThreads');
+	let errorMessage: string | undefined;
 
 	const sortOptions = Object.values(ThreadSort).map<SelectOption>((o) => ({
 		id: o,
 		title: browser.i18n.getMessage(o as any),
 	}));
 
+	let isLoading: boolean = true;
 	let isCollapsed: boolean;
 	let threads: Thread[];
 	let threadOptions: SelectOption[];
-	let selectedThread: undefined | Thread;
+	let selectedThread: Thread;
 	let selectedSort: SelectOption;
 
 	youtubeIdStore.subscribe((r) => {
@@ -120,47 +133,49 @@
 			SettingType.BOOLEAN
 		).getValue();
 
-		const lastSort =
-			(await storage.getItem('local:lastSort')) || ThreadSort.SCORE;
-		defaultThreadSort = sortOptions.find((o) => o.id === lastSort)!;
+		const lastSort = await lastSortSetting.getValue();
+		selectedSort = sortOptions.find((o) => o.id === lastSort)!;
 	});
 </script>
 
-<div class="{$siteStore.id} container">
+<div class="{$siteStore.id} reddit-comments">
 	<div class="header">
-		<h2>
+		<span>
 			<button
-				class="plain-button-link"
+				class="thread-collapser"
 				on:click={() => (isCollapsed = !isCollapsed)}
 				>{isCollapsed ? '[＋]' : '[－]'}</button
 			>
 			{headerMessage}
-		</h2>
-		<h2 class="status">{statusMessage}</h2>
+		</span>
+		<span class="thread-count">{threadCount}</span>
 		<div class="sort">
-			<h2>{sortMessage}&nbsp;</h2>
-			{#if defaultThreadSort}
+			<span>{sortMessage}&nbsp;</span>
+			{#if selectedSort}
 				<CustomSelect
 					options={sortOptions}
-					defaultOption={defaultThreadSort}
+					bind:selectedOption={selectedSort}
 					callback={sortThreads}
 				/>
 			{/if}
 		</div>
 	</div>
 	<div class:collapsed={isCollapsed}>
-		{#if threadOptions?.length}
+		{#if selectedThread}
 			<CustomSelect
 				options={threadOptions}
 				fullWidth={true}
-				defaultOption={undefined}
+				bind:selectedOption={selectedThread}
 				callback={setThread}
 			/>
-		{:else}
+		{:else if !isLoading}
 			<span class="status">{noThreadsMessage}</span>
 		{/if}
+		{#if errorMessage}
+			<span class="status">{errorMessage}</span>
+		{/if}
 		{#if selectedThread !== undefined}
-			{#key selectedThread?.fullId}
+			{#key selectedThread.fullId}
 				<ThreadComponent thread={selectedThread} />
 			{/key}
 		{/if}
@@ -168,12 +183,28 @@
 </div>
 
 <style lang="postcss">
-	.container {
-		@apply leading-normal w-full text-primary;
+	.reddit-comments {
+		@apply leading-tight w-full text-primary my-[20px];
 	}
 
 	.header {
-		@apply flex justify-between items-center mb-2.5 text-standard [&>*]:w-full;
+		@apply flex justify-between items-center mb-[10px] text-standard;
+
+		.thread-collapser {
+			@apply plain-button text-link;
+		}
+
+		& > * {
+			@apply w-full;
+		}
+
+		* {
+			@apply text-header;
+		}
+
+		.thread-count {
+			@apply text-center;
+		}
 	}
 
 	.collapsed {
@@ -181,7 +212,7 @@
 	}
 
 	.status {
-		@apply text-center text-standard;
+		@apply text-center text-standard w-full inline-block;
 	}
 
 	.sort {
