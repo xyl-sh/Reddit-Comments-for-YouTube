@@ -151,8 +151,8 @@
 		</span>
 		<span class="thread-count">{threadCount}</span>
 		<div class="sort">
-			<span>{sortMessage}&nbsp;</span>
 			{#if selectedSort}
+				<span>{sortMessage}&nbsp;</span>
 				<CustomSelect
 					options={sortOptions}
 					bind:selectedOption={selectedSort}

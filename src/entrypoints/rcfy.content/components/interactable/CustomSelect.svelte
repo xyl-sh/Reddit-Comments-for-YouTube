@@ -15,6 +15,7 @@
 
 	let entryWidth: number;
 	let buttonWidth: number = 0;
+	let mounted = false;
 	let isActive = false;
 
 	function setSelectedOption(option: any) {
@@ -40,8 +41,15 @@
 		};
 	}
 
+	function setSite(width: number, ready: boolean) {
+		if (buttonWidth !== 0 || !ready) return;
+		buttonWidth = width - 9;
+	}
+
+	$: setSite(entryWidth, mounted);
+
 	onMount(() => {
-		buttonWidth = entryWidth - 10;
+		mounted = true;
 	});
 </script>
 
