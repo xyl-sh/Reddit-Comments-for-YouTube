@@ -26,7 +26,7 @@
 	<Lemmy />
 	<div class="links">
 		<a
-			href="https://github.com/Xyl-AU/Reddit-Comments-for-Nebula"
+			href="https://github.com/Xyl-AU/Reddit-Comments-for-YouTube"
 			target="_blank">GitHub</a
 		>
 		<a href="https://ko-fi.com/xylau" target="_blank">support the developer</a>
