@@ -81,13 +81,13 @@ async function getMoreChildrenLemmy(
 		url.searchParams.append('parent_id', moreChildren.parent);
 		url.searchParams.append('max_depth', '8');
 		url.searchParams.append('limit', '999');
-		url.searchParams.append('type_', 'All');
 	}
 
 	if (token) {
 		url.searchParams.append('auth', token);
 	}
 	url.searchParams.append('sort', sort);
+	url.searchParams.append('type_', 'All');
 
 	const response = await fetchCatch(url);
 

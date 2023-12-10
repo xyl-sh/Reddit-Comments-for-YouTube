@@ -145,7 +145,6 @@
 		:global(ol),
 		:global(ul) {
 			@apply pl-10;
-			list-style: auto;
 		}
 
 		:global(table) {

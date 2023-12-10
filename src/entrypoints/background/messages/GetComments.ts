@@ -48,6 +48,7 @@ async function getLemmyThread(
 	url.searchParams.append('post_id', threadId);
 	url.searchParams.append('sort', sort);
 	url.searchParams.append('limit', '50');
+	url.searchParams.append('type_', 'All');
 
 	const token = await getSetting(
 		Settings.LEMMYTOKEN,

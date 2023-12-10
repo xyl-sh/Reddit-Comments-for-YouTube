@@ -30,6 +30,7 @@
 	let user: User | undefined;
 	let isBanned: boolean | undefined;
 	let errorMessage: string;
+	let lastPage: number;
 
 	async function getComments(o: SelectOption) {
 		if (selectedSort === o) {
@@ -74,19 +75,24 @@
 	});
 
 	function calculateRemaining(replies: Replies) {
-		if (!replies) return;
+		if (!replies || thread.website !== Website.LEMMY) return;
 		const childComments = thread.replies.reduce((previousValue, c) => {
 			if (c.kind === Kind.MORE) return previousValue;
 			return previousValue + (c.childCount + 1);
 		}, 0);
 		const remainingChildren = thread.comments - childComments;
-		thread.remainingChildren = remainingChildren;
+
 		if (
-			thread.remainingChildren === 0 ||
-			thread.remainingChildren === remainingChildren
+			remainingChildren < 1 ||
+			(remainingChildren === thread.remainingChildren &&
+				lastPage === thread.page)
 		) {
+			thread.remainingChildren = remainingChildren;
 			return;
 		}
+
+		thread.remainingChildren = remainingChildren;
+		lastPage = thread.page;
 
 		const moreChildren: MoreReplies = {
 			kind: Kind.MORE,
