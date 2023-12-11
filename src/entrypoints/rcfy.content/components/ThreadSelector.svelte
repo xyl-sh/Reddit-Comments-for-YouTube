@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { siteStore, videoIdStore, youtubeIdStore } from '../store';
 	import { sendMessage } from '@/lib/messaging';
 	import type { Thread } from '@/lib/types/Elements';
 	import type { GetThreadsRequest } from '@/lib/types/NetworkRequests';
@@ -9,6 +8,13 @@
 	import CustomSelect from './interactable/CustomSelect.svelte';
 	import type { SelectOption } from './interactable/CustomSelect.svelte';
 	import { SettingType, Settings, getSetting } from '@/lib/settings';
+	import type { Site } from '@/lib/types/Site';
+
+	export let site: Site;
+	export let vId: string;
+	export let yId: string | null | undefined;
+	export let threads: Thread[] | undefined = undefined;
+	export let isPopup: boolean = false;
 
 	const lastSortSetting = getSetting(Settings.LASTSORT, SettingType.OPTION);
 
@@ -69,18 +75,36 @@
 					title: t.title,
 				}
 		);
+
+		threadCount =
+			threads?.length === 1
+				? browser.i18n.getMessage('oneThread')
+				: browser.i18n.getMessage('threadCount', [`${threads.length}`]);
+
 		setThread(threadOptions[0]);
 
 		isLoading = false;
 	}
 
-	async function getThreads() {
+	async function getThreads(
+		site: Site,
+		videoId: string,
+		youtubeId: string | null | undefined,
+		sort: SelectOption
+	) {
+		if (youtubeId === undefined || sort === undefined) return;
+
+		if (threads !== undefined) {
+			sortThreads(selectedSort);
+			return;
+		}
+
 		errorMessage = undefined;
 
 		const getThreadsRequest: GetThreadsRequest = {
-			site: $siteStore,
-			videoId: $videoIdStore,
-			youtubeId: $youtubeIdStore!,
+			site: site,
+			videoId: videoId,
+			youtubeId: youtubeId,
 		};
 
 		const response = await sendMessage('getThreads', getThreadsRequest);
@@ -92,13 +116,10 @@
 
 		threads = response.value;
 
-		threadCount =
-			threads?.length === 1
-				? browser.i18n.getMessage('oneThread')
-				: browser.i18n.getMessage('threadCount', [`${threads.length}`]);
-
 		sortThreads(selectedSort);
 	}
+
+	$: getThreads(site, vId, yId, selectedSort);
 
 	const headerMessage = browser.i18n.getMessage('header');
 	const sortMessage = browser.i18n.getMessage('sortThreads');
@@ -113,40 +134,36 @@
 
 	let isLoading: boolean = true;
 	let isCollapsed: boolean;
-	let threads: Thread[];
 	let threadOptions: SelectOption[];
 	let selectedThread: Thread;
 	let selectedSort: SelectOption;
 
 	function setThread(o: SelectOption) {
-		selectedThread = threads.find((t) => t.fullId === o.id)!;
+		selectedThread = threads!.find((t) => t.fullId === o.id)!;
 	}
 
 	onMount(async () => {
-		isCollapsed = await getSetting(
-			Settings.COLLAPSEONLOAD,
-			SettingType.BOOLEAN
-		).getValue();
+		isCollapsed =
+			(await getSetting(
+				Settings.COLLAPSEONLOAD,
+				SettingType.BOOLEAN
+			).getValue()) && !isPopup;
 
 		const lastSort = await lastSortSetting.getValue();
 		selectedSort = sortOptions.find((o) => o.id === lastSort)!;
-
-		youtubeIdStore.subscribe((r) => {
-			if (!$siteStore.canMatchYouTube || r !== undefined) {
-				getThreads();
-			}
-		});
 	});
 </script>
 
-<div class="{$siteStore.id} reddit-comments">
+<div class="{site.id} reddit-comments">
 	<div class="header">
 		<span>
-			<button
-				class="thread-collapser"
-				on:click={() => (isCollapsed = !isCollapsed)}
-				>{isCollapsed ? '[＋]' : '[－]'}</button
-			>
+			{#if !isPopup}
+				<button
+					class="thread-collapser"
+					on:click={() => (isCollapsed = !isCollapsed)}
+					>{isCollapsed ? '[＋]' : '[－]'}</button
+				>
+			{/if}
 			{headerMessage}
 		</span>
 		<span class="thread-count">{threadCount}</span>
@@ -177,7 +194,7 @@
 		{/if}
 		{#if selectedThread !== undefined}
 			{#key selectedThread.fullId}
-				<ThreadComponent thread={selectedThread} />
+				<ThreadComponent thread={selectedThread} {site} />
 			{/key}
 		{/if}
 	</div>
@@ -185,7 +202,11 @@
 
 <style lang="postcss">
 	.reddit-comments {
-		@apply leading-tight w-full text-primary my-[20px];
+		@apply leading-tight w-full text-primary;
+
+		&:not(.popup) {
+			@apply my-[20px];
+		}
 	}
 
 	.header {

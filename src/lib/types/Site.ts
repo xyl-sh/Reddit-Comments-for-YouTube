@@ -70,3 +70,20 @@ export function getSiteById(id: SiteId) {
 
 	return match;
 }
+
+export function getPopupSite(url: URL) {
+	const domain = url.hostname;
+	try {
+		const site = getSite(domain);
+		if (url.href.match(site.idRegex)) {
+			return site;
+		}
+	} catch {}
+
+	return <Site>{
+		id: SiteId.POPUP,
+		canMatchYouTube: false,
+		domains: [domain],
+		templates: [`https://${domain}/videoId`],
+	};
+}

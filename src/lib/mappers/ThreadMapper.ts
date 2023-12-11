@@ -35,6 +35,7 @@ export function redditThreadToThread(thread: any): Thread {
 		linkedTimestamp: timestampParam
 			? parseTimestamp(timestampParam)
 			: undefined,
+		submissionLink: d.url,
 		community: `r/${d.subreddit}`,
 		communityLink: `${REDDIT_LINK_DOMAIN}/r/${d.subreddit}`,
 		score: d.score - userVote,
@@ -68,6 +69,7 @@ export async function lemmyThreadToThread(thread: any): Promise<Thread> {
 		author: `@${author}`,
 		authorLink: await buildLemmyUrl(`u/${author}`),
 		link: await buildLemmyUrl(`post/${p.id}`),
+		submissionLink: p.url,
 		community: `!${community}`,
 		communityLink: await buildLemmyUrl(`c/${community}`),
 		score: n.score - ~~thread.my_vote,

@@ -11,6 +11,7 @@ import {
 } from './types/NetworkRequests';
 import { CommentResponse, FetchResponse } from './types/NetworkResponses';
 import { Reply, Replies, Thread } from './types/Elements';
+import { Site } from './types/Site';
 
 interface ProtocolMap {
 	comment(r: CommentRequest): FetchResponse<Reply>;
@@ -21,6 +22,8 @@ interface ProtocolMap {
 	vote(r: VoteRequest): void;
 	lemmyLogin(r: LemmyLoginRequest): FetchResponse<string>;
 	searchYouTube(r: SearchYouTubeRequest): FetchResponse<string | null>;
+
+	getPopupThreads(r: number): { url?: URL; threads?: Thread[]; site?: Site };
 }
 
 export const { sendMessage, onMessage } =

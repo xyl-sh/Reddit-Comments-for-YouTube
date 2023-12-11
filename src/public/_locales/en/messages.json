@@ -281,6 +281,9 @@
 	"showRedditResults": {
 		"message": "Show Reddit results when Lemmy domain is set."
 	},
+	"searchAllSites": {
+		"message": "Enable threads on all sites through this popup."
+	},
 	"duplicateEntry": {
 		"message": "Duplicate entry, ignored."
 	},
@@ -315,5 +318,17 @@
 	},
 	"loginToLemmy": {
 		"message": "Login to Lemmy"
+	},
+	"goToSettings": {
+		"message": "Go to Settings >"
+	},
+	"goToThreads": {
+		"message": "Go to Threads >"
+	},
+	"tabsExplanation": {
+		"message": "This function requires the tabs permission to get the URL of each page. Grant the permission, and refresh the page."
+	},
+	"request": {
+		"message": "Request..."
 	}
 }

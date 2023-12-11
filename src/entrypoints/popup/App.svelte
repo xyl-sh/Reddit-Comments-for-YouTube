@@ -1,57 +1,51 @@
 <script lang="ts">
-	import { SettingsList } from '@/lib/settings';
-	import SettingContainer from './SettingContainer.svelte';
-	import Lemmy from './settings/Lemmy/Lemmy.svelte';
+	import { onMount } from 'svelte';
+	import Main from './Main.svelte';
+	import PopupThread from './PopupThread.svelte';
+	import { SettingType, Settings, getSetting } from '@/lib/settings';
 
-	const headerLabel = browser.i18n.getMessage('extensionName');
+	let threadsOptionEnabled = false;
+	let showingThreads = false;
 
-	const settings = SettingsList.filter(
-		(s) =>
-			!SettingsList.find((p) => p.children?.includes(s.name)) && s.displayInList
-	);
+	$: settingsMessage = showingThreads
+		? browser.i18n.getMessage('goToSettings')
+		: browser.i18n.getMessage('goToThreads');
+
+	onMount(async () => {
+		threadsOptionEnabled = await getSetting(
+			Settings.SEARCHALLSITES,
+			SettingType.BOOLEAN
+		).getValue();
+
+		showingThreads = threadsOptionEnabled;
+	});
 </script>
 
 <main>
-	<div class="header">
-		<span class="heading">{headerLabel}</span>
-		<span
-			>Apologies if your settings reset, or something broke. This extension was
-			recently rewritten. If you run into problems, please <a
-				href="https://github.com/Xyl-AU/Reddit-Comments-for-YouTube/issues"
-				target="_blank">open an issue report</a
-			>.</span
+	{#if threadsOptionEnabled}
+		<button
+			on:click={() => {
+				showingThreads = !showingThreads;
+			}}>{settingsMessage}</button
 		>
-	</div>
-	<SettingContainer {settings} />
-	<Lemmy />
-	<div class="links">
-		<a
-			href="https://github.com/Xyl-AU/Reddit-Comments-for-YouTube"
-			target="_blank">GitHub</a
-		>
-		<a href="https://ko-fi.com/xylau" target="_blank">support the developer</a>
-	</div>
+	{/if}
+	{#if showingThreads}
+		<PopupThread />
+	{:else}
+		<Main />
+	{/if}
 </main>
 
 <style lang="postcss">
 	main {
-		@apply p-8;
+		@apply p-8 flex flex-col items-end gap-4;
+
+		:global(p) {
+			@apply m-0;
+		}
 	}
 
-	.header,
-	.links {
-		@apply flex flex-col text-center;
-
-		.heading {
-			@apply text-lg font-bold;
-		}
-
-		a {
-			@apply text-link;
-		}
-
-		span {
-			@apply mb-3;
-		}
+	button {
+		@apply plain-button text-link hover:underline text-standard;
 	}
 </style>

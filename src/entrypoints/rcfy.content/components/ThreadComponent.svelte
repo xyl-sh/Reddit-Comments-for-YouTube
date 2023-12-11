@@ -16,15 +16,16 @@
 	} from '@/lib/types/Elements';
 	import type { GetCommentsRequest } from '@/lib/types/NetworkRequests';
 	import { onDestroy, onMount } from 'svelte';
-	import { siteStore } from '../store';
 	import CommentContainer from './CommentContainer.svelte';
 	import CustomSelect, {
 		type SelectOption,
 	} from './interactable/CustomSelect.svelte';
 	import TextBox from './interactable/TextBox.svelte';
 	import Votes from './interactable/Votes.svelte';
+	import type { Site } from '@/lib/types/Site';
 
 	export let thread: Thread;
+	export let site: Site;
 
 	let hidden: boolean;
 	let user: User | undefined;
@@ -61,9 +62,8 @@
 	function goToTimestamp(timestamp: number | undefined) {
 		if (!timestamp) return;
 		window.scrollTo(0, 0);
-		document.querySelector<HTMLVideoElement>(
-			$siteStore.videoElement
-		)!.currentTime = timestamp;
+		document.querySelector<HTMLVideoElement>(site.videoElement)!.currentTime =
+			timestamp;
 	}
 	const sortOptions = Object.values(
 		thread.website === Website.REDDIT ? RedditCommentSort : LemmyCommentSort

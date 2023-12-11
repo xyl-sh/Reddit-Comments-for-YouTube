@@ -20,6 +20,7 @@ export interface Thread extends Element, SelectOption {
 	authorLink: string;
 	link: string;
 	linkedTimestamp?: number;
+	submissionLink: string;
 	community: string;
 	communityLink: string;
 	score: number;

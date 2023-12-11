@@ -88,9 +88,16 @@ async function mapRedditQueries(
 	) {
 		return [];
 	}
-	return site.domains.flatMap((d) => {
+	return site.domains.flatMap((d, i) => {
 		const url = new URL(`${REDDIT_API_DOMAIN}/search.json`);
-		url.searchParams.set('q', `url:${videoId}+site:${d}`);
+		if (site.id === SiteId.POPUP) {
+			url.searchParams.set(
+				'q',
+				`url:${site.templates[i].replace('videoId', videoId)}+site:${d}`
+			);
+		} else {
+			url.searchParams.set('q', `url:${videoId}+site:${d}`);
+		}
 		url.searchParams.set('limit', '100');
 		url.searchParams.set('sort', 'top');
 		url.searchParams.set('include_over_18', includeNSFW.toString());
@@ -125,6 +132,7 @@ async function mapLemmyQueries(site: Site, videoId: string) {
 async function getThreads(
 	r: GetThreadsRequest
 ): Promise<FetchResponse<Thread[]>> {
+	console.log('test');
 	resetUser();
 	const includeNSFW = await getSetting(
 		Settings.INCLUDENSFW,

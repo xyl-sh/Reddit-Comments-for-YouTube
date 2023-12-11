@@ -27,7 +27,7 @@ export default defineConfig({
 			'*://api.reddit.com/',
 		],
 		host_permissions: ['*://*.nebula.tv/', '*://api.reddit.com/'],
-		optional_permissions: ['https://*/*'],
+		optional_permissions: ['https://*/*', 'tabs'],
 		optional_host_permissions: ['https://*/*'],
 		browser_specific_settings: {
 			gecko: {

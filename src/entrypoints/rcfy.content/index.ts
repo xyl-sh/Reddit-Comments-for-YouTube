@@ -2,7 +2,6 @@ import { Site, getSite } from '@/lib/types/Site';
 import ThreadSelector from './components/ThreadSelector.svelte';
 import { SearchYouTubeRequest } from '@/lib/types/NetworkRequests';
 import { sendMessage } from '@/lib/messaging';
-import { siteStore, videoIdStore, youtubeIdStore } from './store';
 import { SettingType, Settings, getSetting } from '@/lib/settings';
 import './style.css';
 import { SiteId } from '@/lib/constants';
@@ -21,8 +20,8 @@ export default defineContentScript({
 			document.addEventListener(e, () => setup(site, ui));
 		});
 
-		browser.runtime.onMessage.addListener((message) => {
-			if (message.hasUrlChanged) {
+		browser.runtime.onMessage.addListener((data) => {
+			if (data.hasUrlChanged) {
 				setup(site, ui);
 			}
 		});
@@ -60,9 +59,7 @@ async function setup(site: Site, ui: HTMLDivElement) {
 		return;
 	}
 	lastVideoId = videoId;
-	videoIdStore.set(videoId);
 
-	siteStore.set(site);
 	ui.replaceChildren();
 
 	const searchYouTubeEnabled =
@@ -113,11 +110,22 @@ async function setup(site: Site, ui: HTMLDivElement) {
 		});
 
 	anchorElement.insertAdjacentElement(site.anchorType, ui);
-
-	new ThreadSelector({ target: ui });
+	const threadSelector = new ThreadSelector({
+		target: ui,
+		props: {
+			site: site,
+			vId: videoId,
+			yId: site.canMatchYouTube ? undefined : null,
+		},
+	});
 
 	if (searchYouTubeEnabled) {
-		searchYouTube(titleElement, usernameElement, videoElement);
+		const youtubeId = await searchYouTube(
+			titleElement,
+			usernameElement,
+			videoElement
+		);
+		threadSelector.$set({ yId: youtubeId });
 	}
 }
 
@@ -147,7 +155,5 @@ async function searchYouTube(
 		console.error('searchYouTube', searchYouTubeResponse.errorMessage);
 	}
 
-	youtubeIdStore.set(
-		searchYouTubeResponse.success ? searchYouTubeResponse.value : null
-	);
+	return searchYouTubeResponse.success ? searchYouTubeResponse.value : null;
 }

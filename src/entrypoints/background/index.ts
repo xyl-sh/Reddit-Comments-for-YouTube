@@ -7,14 +7,7 @@ import { vote } from './messages/interactions/Vote';
 import { lemmyLogin } from './messages/LemmyLogin';
 import { comment } from './messages/interactions/Comment';
 import { deleteComment } from './messages/interactions/Delete';
-
-browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
-	if (changeInfo.url) {
-		browser.tabs.sendMessage(tabId, {
-			hasUrlChanged: true,
-		});
-	}
-});
+import { getPopup, getPopupThreads, removeFromDicts } from './popup';
 
 export default defineBackground(() => {
 	onMessage('comment', async (r) => {
@@ -41,4 +34,29 @@ export default defineBackground(() => {
 	onMessage('searchYouTube', async (r) => {
 		return await searchYouTube(r.data);
 	});
+});
+
+browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+	if (changeInfo.status === 'complete') {
+		getPopup(tabId);
+	}
+	if (changeInfo.url) {
+		browser.tabs.sendMessage(tabId, {
+			hasUrlChanged: true,
+		});
+	}
+});
+
+browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
+	removeFromDicts(tabId);
+});
+
+browser.runtime.onMessage.addListener((data) => {
+	if (data.id === 'DICTREQUEST') {
+		browser.runtime.sendMessage({
+			id: 'DICTRESPONSE',
+			tab: data.tab,
+			dict: getPopupThreads(data.tab),
+		});
+	}
 });

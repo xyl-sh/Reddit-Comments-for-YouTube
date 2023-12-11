@@ -16,6 +16,7 @@ export enum Settings {
 	LEMMYTOKEN = 'lemmyToken',
 	LEMMYUSERNAME = 'lemmyUsername',
 	SHOWREDDITRESULTS = 'showRedditResults',
+	SEARCHALLSITES = 'searchAllSites',
 }
 
 function getLabel(name: Settings) {
@@ -179,6 +180,7 @@ export const SettingsList: SettingClass[] = [
 	new BooleanSetting(Settings.CHILDRENHIDDENDEFAULT, false, true),
 	new BooleanSetting(Settings.INCLUDENSFW, false, true),
 	new BooleanSetting(Settings.SHOWREDDITRESULTS, true, true),
+	new BooleanSetting(Settings.SEARCHALLSITES, false, true),
 
 	new OptionSetting(
 		Settings.DEFAULTSORT,

@@ -41,6 +41,7 @@ export enum Kind {
 export enum SiteId {
 	YOUTUBE = 'youtube',
 	NEBULA = 'nebula',
+	POPUP = 'popup',
 }
 
 export enum Website {
