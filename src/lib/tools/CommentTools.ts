@@ -47,11 +47,11 @@ export async function redditCommentParser(content: string) {
 	content = commentParser(content);
 	content = content.replaceAll(/\]\(\//g, `](${REDDIT_LINK_DOMAIN}/`);
 	content = content.replaceAll(
-		/(?:^|\s)(\/?r\/(\w*))/g,
+		/(?<=^|\s)(\/?r\/(\w*))/g,
 		`[$1](${REDDIT_LINK_DOMAIN}/r/$2)`
 	);
 	content = content.replaceAll(
-		/(?:^|\s)(\/?u\/([\w-]*))/g,
+		/(?<=^|\s)(\/?u\/([\w-]*))/g,
 		`[$1](${REDDIT_LINK_DOMAIN}/user/$2)`
 	);
 	content = content.replaceAll(
@@ -70,11 +70,11 @@ export async function redditCommentParser(content: string) {
 export async function lemmyCommentParser(content: string, site: Site) {
 	content = commentParser(content);
 	content = content.replaceAll(
-		/(?:^|\s)!(\w*?@[\w.]*)/g,
+		/(?<=^|\s)!(\w*?@[\w.]*)/g,
 		`[!$1](${await buildLemmyUrl('c/$1')})`
 	);
 	content = content.replaceAll(
-		/(?:^|\s)@([\w-]*?@[\w.]*)/g,
+		/(?<=^|\s)@([\w-]*?@[\w.]*)/g,
 		`[@$1](${await buildLemmyUrl('u/$1')})`
 	);
 

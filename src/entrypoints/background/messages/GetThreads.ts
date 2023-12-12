@@ -132,7 +132,6 @@ async function mapLemmyQueries(site: Site, videoId: string) {
 async function getThreads(
 	r: GetThreadsRequest
 ): Promise<FetchResponse<Thread[]>> {
-	console.log('test');
 	resetUser();
 	const includeNSFW = await getSetting(
 		Settings.INCLUDENSFW,

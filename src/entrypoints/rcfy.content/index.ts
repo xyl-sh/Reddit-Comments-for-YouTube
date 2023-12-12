@@ -103,7 +103,7 @@ async function setup(site: Site, ui: HTMLDivElement) {
 				checkElements();
 			});
 
-			observer.observe(document.body, {
+			observer.observe(document.documentElement, {
 				childList: true,
 				subtree: true,
 			});

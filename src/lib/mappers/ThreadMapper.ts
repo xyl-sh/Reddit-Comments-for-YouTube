@@ -20,6 +20,14 @@ export function redditThreadToThread(thread: any): Thread {
 	const linkedUrl = new URL(d.url.replaceAll('&amp;', '&'));
 	const timestampParam = linkedUrl.searchParams.get('t');
 
+	let linkedTimestamp;
+
+	if (timestampParam) {
+		try {
+			linkedTimestamp = parseTimestamp(timestampParam);
+		} catch {}
+	}
+
 	const userVote = d.likes === null ? 0 : d.likes ? 1 : -1;
 
 	return {
@@ -32,9 +40,7 @@ export function redditThreadToThread(thread: any): Thread {
 		author: d.author,
 		authorLink: `${REDDIT_LINK_DOMAIN}/user/${d.author}`,
 		link: REDDIT_LINK_DOMAIN + d.permalink,
-		linkedTimestamp: timestampParam
-			? parseTimestamp(timestampParam)
-			: undefined,
+		linkedTimestamp: linkedTimestamp,
 		submissionLink: d.url,
 		community: `r/${d.subreddit}`,
 		communityLink: `${REDDIT_LINK_DOMAIN}/r/${d.subreddit}`,

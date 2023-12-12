@@ -32,7 +32,7 @@
 	}
 
 	*::-webkit-scrollbar {
-		@apply w-[8px] bg-option;
+		@apply w-[8px] h-[8px] bg-option;
 	}
 
 	*::-webkit-scrollbar-track {

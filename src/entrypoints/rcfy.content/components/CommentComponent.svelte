@@ -118,7 +118,7 @@
 		@apply text-[14px] text-primary;
 
 		:global(*) {
-			@apply my-[5px];
+			@apply my-[5px] break-words;
 		}
 
 		:global(a),
@@ -157,7 +157,7 @@
 		}
 
 		:global(code) {
-			@apply mx-0.5 break-normal leading-5;
+			@apply mx-0.5 break-normal leading-5 w-full inline-block overflow-x-auto;
 		}
 	}
 </style>
