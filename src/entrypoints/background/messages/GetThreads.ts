@@ -101,6 +101,7 @@ async function mapRedditQueries(
 		url.searchParams.set('limit', '100');
 		url.searchParams.set('sort', 'top');
 		url.searchParams.set('include_over_18', includeNSFW.toString());
+		url.searchParams.set('raw_json', '1');
 
 		return url;
 	});

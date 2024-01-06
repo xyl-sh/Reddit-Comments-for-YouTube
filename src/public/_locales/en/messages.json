@@ -152,6 +152,9 @@
 			}
 		}
 	},
+	"continueThread": {
+		"message": "continue this thread →"
+	},
 	"loadingMoreComments": {
 		"message": "loading..."
 	},

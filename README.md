@@ -1,10 +1,9 @@
-# Reddit Comments for YouTube (+ Nebula)
+# Reddit Comments for YouTube (+ Nebula) (and everything else, sorta...)
 
-![Screenshot of comments](https://files.catbox.moe/8a8ys0.png)
 
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eeoojlakofhogpkplghnmcljbcjdobbo)](https://chrome.google.com/webstore/detail/reddit-comments-for-youtu/eeoojlakofhogpkplghnmcljbcjdobbo) [![Mozilla Add-on](https://img.shields.io/amo/v/reddit-comments-for-youtube)](https://addons.mozilla.org/en-US/firefox/addon/reddit-comments-for-youtube/)
 
-An extension to display Reddit (and Lemmy) threads for YouTube and Nebula videos.
+An extension to display Reddit (and Lemmy) threads for YouTube and Nebula videos. It also technically supports viewing comments for any page, however this is considered an out-of-scope bonus, so dev priority is not given to it.
 
 This is loosely based on [Lucien Maloney's extension](https://github.com/lucienmaloney/reddit_comments_for_youtube_extension) (it was once a fork, but has since been totally rewritten twice).
 
@@ -47,3 +46,9 @@ The [wxt](https://wxt.dev/) browser extension framework is used to handle buildi
 `pnpm zip:firefox` for Firefox/MV2
 
 The built zip will be output to /.output.
+
+## Gallery
+
+![Screenshot of comments (light mode)](https://files.catbox.moe/isyjop.png)  
+![Screenshot of thread selector (dark mode)](https://files.catbox.moe/g41iut.png)  
+![Screenshot of popup](https://files.catbox.moe/nnbet3.png)

@@ -76,7 +76,7 @@
 	}
 
 	textarea {
-		@apply w-[500px] h-[100px] text-sm block text-primary bg-interactable border-interactable border-[1px] rounded-large;
+		@apply w-[500px] h-[100px] text-[14px] block text-primary bg-interactable border-interactable border-[1px] rounded-large;
 	}
 
 	.buttons {
