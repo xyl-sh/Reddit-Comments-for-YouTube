@@ -51,4 +51,4 @@ The built zip will be output to /.output.
 
 ![Screenshot of comments (light mode)](https://files.catbox.moe/isyjop.png)  
 ![Screenshot of thread selector (dark mode)](https://files.catbox.moe/g41iut.png)  
-![Screenshot of popup](https://files.catbox.moe/nnbet3.png)
+![Screenshot of popup](https://files.catbox.moe/bpdjt6.png)
