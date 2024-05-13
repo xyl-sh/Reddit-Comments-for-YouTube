@@ -57,6 +57,18 @@ export interface Reply extends Element {
 	remainingChildren: number;
 }
 
+export interface Media {
+	[mediaId: string]: {
+		e: string,
+		s: {
+			x: number,
+			y: number,
+			u?: string,
+			gif?: string,
+		}
+	},
+}
+
 export interface MoreReplies extends Element {
 	kind: Kind.MORE;
 	id: string;

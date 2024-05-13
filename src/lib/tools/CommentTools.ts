@@ -2,7 +2,7 @@ import { marked } from 'marked';
 import { buildLemmyUrl } from './RequestTools';
 import { REDDIT_LINK_DOMAIN } from '../constants';
 import { parseTimestamp } from './TimeTools';
-import { Site } from '../types/Site';
+import { Media } from '../types/Elements';
 
 export const renderer = new marked.Renderer();
 const linkRenderer = renderer.link;
@@ -43,7 +43,7 @@ function commentParser(content: string) {
 	return content;
 }
 
-export async function redditCommentParser(content: string) {
+export async function redditCommentParser(content: string, media: Media) {
 	content = commentParser(content);
 	content = content.replaceAll(/\]\(\//g, `](${REDDIT_LINK_DOMAIN}/`);
 	content = content.replaceAll(
@@ -60,14 +60,47 @@ export async function redditCommentParser(content: string) {
 	);
 
 	content = content.replaceAll(/\^{3,}/g, '^^^');
-	while (content.match(/\^(\S*)/)) {
-		content = content.replaceAll(/\^(\S*)/g, '<sup>$1</sup>');
+	while (content.match(/\^((?:\(.*?\))|(?:\S*))/)) {
+		content = content.replaceAll(/\^((?:\(.*?\))|(?:\S*))/g, '<sup>$1</sup>');
+	}
+
+	while (content.match(/(<sup>)\((.*?)\)(<\/sup>)/)) {
+		content = content.replaceAll(/(<sup>)\((.*?)\)(<\/sup>)/g, '$1$2$3');
+	}
+
+	for (const [k, v] of Object.entries(media || {})) {
+		const image = v.e === 'Image';
+		const src = (image ? v.s.u : v.s.gif) || '';
+		let width = v.s.x;
+		let height = v.s.y;
+
+		if (width > 240 || height > 240) {
+			if (width > height) {
+				let ratio = width / 240;
+				width = 240;
+				height = height / ratio;
+			} else if (height > width) {
+				let ratio = height / 240;
+				height = 240;
+				width = width / ratio;
+			} else {
+				width = 240;
+				height = 240;
+			}
+		}
+
+		const img = ` <img src='${src}' width='${width}' height='${height}'> `;
+		const regex = k.includes('|')
+			? new RegExp(String.raw`!\[.*?\]\(${k.replaceAll('|', String.raw`\|`)}\)`, 'g')
+			: new RegExp(String.raw`${src}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+
+		content = content.replaceAll(regex, img);
 	}
 
 	return await marked(content, { renderer });
 }
 
-export async function lemmyCommentParser(content: string, site: Site) {
+export async function lemmyCommentParser(content: string) {
 	content = commentParser(content);
 	content = content.replaceAll(
 		/(?<=^|\s)!(\w*?@[\w.]*)/g,

@@ -41,12 +41,12 @@ const Sites: Site[] = [
 	{
 		id: SiteId.NEBULA,
 		idRegex: /(?<=videos\/).*/,
-		anchorType: AnchorType.BEFOREEND,
-		anchorElement: 'section[aria-label="video description"]',
+		anchorType: AnchorType.AFTEREND,
+		anchorElement: 'section[aria-label="video description"] > div:last-of-type',
 		usernameElement: 'section[aria-label="video description"] a',
 		titleElement: '[aria-label="video description"] h1',
 		videoElement: '#video-player video',
-		canMatchYouTube: false,
+		canMatchYouTube: true,
 		domains: ['nebula.tv'],
 		templates: ['https://nebula.tv/videos/videoId'],
 		eventListeners: ['DOMContentLoaded'],
@@ -78,7 +78,7 @@ export function getPopupSite(url: URL) {
 		if (url.href.match(site.idRegex)) {
 			return site;
 		}
-	} catch {}
+	} catch { }
 
 	return <Site>{
 		id: SiteId.POPUP,

@@ -24,7 +24,7 @@ export async function redditCommentsToComments(
 						parent: d.parent_id,
 						thread: threadId,
 						body: d.body,
-						bodyHtml: await redditCommentParser(d.body),
+						bodyHtml: await redditCommentParser(d.body, d.media_metadata),
 						author: d.author,
 						authorLink: `${REDDIT_LINK_DOMAIN}/user/${d.author}`,
 						link: REDDIT_LINK_DOMAIN + d.permalink,

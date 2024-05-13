@@ -120,12 +120,12 @@ async function setup(site: Site, ui: HTMLDivElement) {
 	});
 
 	if (searchYouTubeEnabled) {
-		const youtubeId = await searchYouTube(
+		searchYouTube(
 			titleElement,
 			usernameElement,
-			videoElement
+			videoElement,
+			threadSelector
 		);
-		threadSelector.$set({ yId: youtubeId });
 	}
 }
 
@@ -137,7 +137,8 @@ function getVideoId(site: Site) {
 async function searchYouTube(
 	titleElement: HTMLElement,
 	usernameElement: HTMLAnchorElement,
-	videoElement: HTMLVideoElement
+	videoElement: HTMLVideoElement,
+	threadSelector: ThreadSelector
 ) {
 	const searchYouTubeRequest: SearchYouTubeRequest = {
 		title: titleElement.textContent!,
@@ -155,5 +156,7 @@ async function searchYouTube(
 		console.error('searchYouTube', searchYouTubeResponse.errorMessage);
 	}
 
-	return searchYouTubeResponse.success ? searchYouTubeResponse.value : null;
+	const id = searchYouTubeResponse.success ? searchYouTubeResponse.value : null;
+
+	threadSelector.$set({ yId: id });
 }

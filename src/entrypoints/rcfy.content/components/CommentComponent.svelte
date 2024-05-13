@@ -121,6 +121,10 @@
 			@apply my-[5px] break-words;
 		}
 
+		:global(p > img) {
+			@apply my-0;
+		}
+
 		:global(a),
 		:global(button) {
 			@apply plain-button;

@@ -17,6 +17,7 @@
 	let buttonWidth: number = 0;
 	let mounted = false;
 	let isActive = false;
+	let titleWidth;
 
 	function setSelectedOption(option: any) {
 		selectedOption = option;
@@ -41,12 +42,13 @@
 		};
 	}
 
-	function setSite(width: number, ready: boolean) {
+	function setWidth(width: number, ready: boolean) {
 		if (buttonWidth !== 0 || !ready) return;
 		buttonWidth = width - 9;
 	}
 
-	$: setSite(entryWidth, mounted);
+	$: setWidth(entryWidth, mounted);
+	$: titleWidth = `width: ${buttonWidth}px;`;
 
 	onMount(() => {
 		mounted = true;
@@ -66,7 +68,7 @@
 			isActive = !isActive;
 		}}
 	>
-		<span style="width: {buttonWidth}px;">{selectedOption.title}</span>
+		<span style={titleWidth}>{selectedOption.title}</span>
 		<div class="arrow">╲╱</div>
 	</button>
 	<div
