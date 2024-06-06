@@ -93,5 +93,6 @@ export function timestampToRelativeTime(timestamp: number) {
 }
 
 export function lemmyTimestampToEpoch(timestamp: string) {
-	return Math.floor(Date.parse(timestamp) / 1000);
+	const utcTime = timestamp.endsWith('Z') ? timestamp : `${timestamp}+00:00`;
+	return ~~(Date.parse(utcTime) / 1000);
 }
