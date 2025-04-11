@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 .output
 stats.html
+stats-*.json
 .wxt
 web-ext.config.ts
 
@@ -23,5 +24,3 @@ web-ext.config.ts
 *.njsproj
 *.sln
 *.sw?
-
-.directory

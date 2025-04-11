@@ -1,0 +1,70 @@
+@import url("tailwindcss/theme.css") layer(theme);
+@import url("tailwindcss/utilities.css") layer(utilities);
+@import url("./themes/youtube.css");
+@import url("./themes/nebula.css");
+
+@theme {
+  --text-color-primary: var(--primary-text);
+  --text-color-secondary: var(--secondary-text);
+  --text-color-link: var(--link-text);
+  --text-color-subtle: var(--subtle-link-text);
+  --background-color-interactable: var(--interactable-background);
+  --background-color-select: var(--select-background);
+  --background-color-option: var(--option-background);
+  --background-color-hover: var(--hover-background);
+  --background-image-arrows: var(--arrows);
+  --text-header: var(--header-size);
+  --font-weight-header: var(--header-weight);
+  --text-standard: var(--notice-size);
+  --text-arrow: calc(var(--notice-size) / 2);
+  --font-weight-notice: var(--notice-weight);
+  --margin-container: var(--container-margin);
+  --border-width-interactable: var(--interactable-border-width);
+  --border-color-interactable: var(--interactable-border);
+  --border-color-separator: var(--separator-border);
+  --border-color-blockquote: var(--secondary-text);
+  --radius-small: var(--border-radius-small);
+  --radius-large: var(--border-radius-large);
+}
+
+@utility reddit-comments {
+  --arrows: url("~/assets/arrows-light.png");
+
+  img,
+  video {
+    @apply max-w-full h-auto;
+  }
+
+  *::-webkit-scrollbar {
+    @apply w-[8px] h-[8px] bg-option;
+  }
+
+  *::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    @apply bg-[var(--secondary-text)] rounded-[16px] border-transparent;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    --arrows: url("~/assets/arrows-dark.png");
+  }
+}
+
+@utility plain-button {
+  @apply bg-transparent bg-none cursor-pointer m-0 p-0 border-0 text-left text-inherit no-underline;
+
+  border: unset;
+  font-family: inherit;
+  font-size: inherit;
+
+  &:disabled {
+    @apply cursor-default;
+  }
+}
+
+@utility fill-available {
+  width: -webkit-fill-available !important;
+  width: -moz-available !important;
+}
