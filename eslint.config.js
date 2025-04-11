@@ -9,28 +9,28 @@ import svelte from "eslint-plugin-svelte";
 import ts from "typescript-eslint";
 
 export default ts.config(
-  includeIgnoreFile(fileURLToPath(new URL(".gitignore", import.meta.url))),
-  autoImports,
-  js.configs.recommended,
-  ...ts.configs.recommended,
-  ...svelte.configs.recommended,
-  {
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
-    },
-  },
-  {
-    files: ["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"],
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-        extraFileExtensions: [".svelte"],
-        parser: ts.parser,
-      },
-    },
-  },
-  eslintConfigPrettier,
+	includeIgnoreFile(fileURLToPath(new URL(".gitignore", import.meta.url))),
+	autoImports,
+	js.configs.recommended,
+	...ts.configs.recommended,
+	...svelte.configs.recommended,
+	{
+		languageOptions: {
+			globals: {
+				...globals.browser,
+				...globals.node,
+			},
+		},
+	},
+	{
+		files: ["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"],
+		languageOptions: {
+			parserOptions: {
+				projectService: true,
+				extraFileExtensions: [".svelte"],
+				parser: ts.parser,
+			},
+		},
+	},
+	eslintConfigPrettier,
 );
