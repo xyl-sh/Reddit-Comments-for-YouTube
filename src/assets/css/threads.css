@@ -58,6 +58,7 @@
 	border: unset;
 	font-family: inherit;
 	font-size: inherit;
+	line-height: inherit;
 
 	&:disabled {
 		@apply cursor-default;

@@ -45,7 +45,7 @@
 	{:else}
 		<a
 			class="author"
-			style="background: {distinguishedColor}"
+			style="background: {distinguishedColor()}"
 			href={comment.authorLink}
 			target="_blank"
 			class:distinguished={comment.distinguishedPoster}
