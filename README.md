@@ -29,15 +29,18 @@ The [wxt](https://wxt.dev/) browser extension framework is used to handle buildi
 
 ### Development
 
-`bun wxt`
+`bun run dev` for Chromium
+`bun run dev:firefox` for Firefox
 
 ### Build
 
-`bun wxt build`
+`bun run build` for Chromium
+`bun run build:firefox` for Firefox
 
 ### Build (Extension Reviewers, Do This)
 
-`bun wxt zip`
+`bun run zip` for Chromium
+`bun run zip:firefox` for Firefox
 
 The built zip will be output to /.output.
 
