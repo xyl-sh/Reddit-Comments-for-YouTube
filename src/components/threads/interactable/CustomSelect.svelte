@@ -115,7 +115,7 @@
 	}
 
 	.selector {
-		@apply box-content flex items-center justify-between p-[5px] gap-[5px] rounded-small bg-interactable border-[1px] border-interactable fill-available border-solid;
+		@apply box-content flex items-center justify-between p-[5px] gap-[5px] rounded-small bg-interactable border-[1px] border-interactable border-interactable-width fill-available border-solid;
 
 		&.active {
 			@apply rounded-b-none;
@@ -127,7 +127,7 @@
 	}
 
 	.options {
-		@apply bg-select absolute top-full z-10 border-interactable border-solid box-content border-t-0 flex flex-col rounded-b-small max-h-[40vh] overflow-auto;
+		@apply bg-select absolute top-full z-10 border-interactable border-interactable-width border-solid box-content border-t-0 flex flex-col rounded-b-small max-h-[40vh] overflow-auto;
 
 		button {
 			@apply bg-option p-[5px] border-t-0 shrink-0 last:border-b-0 hover:bg-hover;

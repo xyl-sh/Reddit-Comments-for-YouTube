@@ -19,7 +19,7 @@
 	--text-arrow: calc(var(--notice-size) / 2);
 	--font-weight-notice: var(--notice-weight);
 	--margin-container: var(--container-margin);
-	--border-width-interactable: var(--interactable-border-width);
+	--border-width-interactable-width: var(--interactable-border-width);
 	--border-color-interactable: var(--interactable-border);
 	--border-color-separator: var(--separator-border);
 	--border-color-blockquote: var(--secondary-text);

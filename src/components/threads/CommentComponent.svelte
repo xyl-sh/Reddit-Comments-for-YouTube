@@ -171,7 +171,7 @@
 			}
 
 			pre {
-				@apply bg-interactable border-interactable rounded-sm py-1 px-[9px];
+				@apply bg-interactable border-interactable border-interactable-width rounded-sm py-1 px-[9px];
 			}
 
 			ol,

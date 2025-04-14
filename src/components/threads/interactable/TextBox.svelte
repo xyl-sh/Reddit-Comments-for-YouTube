@@ -88,7 +88,7 @@
 	}
 
 	textarea {
-		@apply w-[500px] h-[100px] text-[14px] block text-primary bg-interactable border-interactable border-[1px] rounded-large;
+		@apply w-[500px] h-[100px] text-[14px] block text-primary bg-interactable border-interactable border-interactable-width border-[1px] rounded-large;
 	}
 
 	.buttons {
@@ -100,7 +100,7 @@
 	}
 
 	button {
-		@apply plain-button text-primary bg-interactable border-interactable border-solid border-[1px] rounded-small p-[3px];
+		@apply plain-button text-primary bg-interactable border-interactable border-interactable-width border-solid border-[1px] rounded-small p-[3px];
 
 		font-size: revert;
 	}

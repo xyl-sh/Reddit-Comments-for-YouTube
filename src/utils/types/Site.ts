@@ -54,11 +54,11 @@ const Sites: Site[] = [
 ];
 
 export function getSite(domain: string) {
-	return Sites.find((s) => s.domains.includes(domain));
+	return structuredClone(Sites.find((s) => s.domains.includes(domain)));
 }
 
 export function getSiteById(id: SiteId) {
-	return Sites.find((s) => s.id === id);
+	return structuredClone(Sites.find((s) => s.id === id));
 }
 
 export function getPopupSite(url: URL) {

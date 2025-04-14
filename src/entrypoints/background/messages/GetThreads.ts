@@ -149,7 +149,7 @@ async function getThreads(
 	if (r.site.canMatchYouTube && r.youtubeId) {
 		const youtube = getSiteById(SiteId.YOUTUBE);
 		if (!youtube) {
-			return { success: false, errorMessage: "Couldn't get threads" };
+			return { success: false, errorMessage: i18n.t("threadError") };
 		}
 		const youtubeSearchUrls = await mapRedditQueries(
 			youtube,
@@ -175,7 +175,7 @@ async function getThreads(
 	);
 
 	if (!threads.find((t) => t.success === true)) {
-		return { success: false, errorMessage: "Couldn't get threads" };
+		return { success: false, errorMessage: i18n.t("threadError") };
 	}
 
 	const ids: string[] = [];

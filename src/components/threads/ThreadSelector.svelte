@@ -159,7 +159,7 @@
 			).getValue()) && !isPopup;
 
 		const lastSort = await lastSortSetting.getValue();
-		selectedSort = sortOptions.find((o) => o.id === lastSort)!;
+		selectedSort = sortOptions.find((o) => o.id === lastSort);
 	});
 </script>
 
@@ -232,7 +232,7 @@
 		}
 
 		* {
-			@apply text-header;
+			@apply text-header font-header;
 		}
 
 		.thread-count {
