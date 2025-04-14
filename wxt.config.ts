@@ -20,6 +20,7 @@ export default defineConfig({
 		description: "__MSG_extensionDescription__",
 		default_locale: "en",
 		permissions: ["storage"],
+		optional_permissions: ["tabs"],
 		host_permissions: ["*://*.nebula.tv/", "*://api.reddit.com/"],
 		optional_host_permissions: ["https://*/*"],
 		browser_specific_settings: {
