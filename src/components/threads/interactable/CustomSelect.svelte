@@ -8,7 +8,7 @@
 <script lang="ts" generics="T">
 	import { onMount } from "svelte";
 	interface CustomSelectProps<T> {
-		callback: (o: SelectOption<T>) => void;
+		callback?: (o: SelectOption<T>) => void;
 		fullWidth?: boolean;
 		options: SelectOption<T>[];
 		selectedOption: SelectOption<T> | undefined;

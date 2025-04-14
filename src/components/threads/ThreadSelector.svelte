@@ -27,15 +27,11 @@
 		isPopup = false,
 	}: ThreadSelectorProps = $props();
 
-	console.log("threads", threads);
-
 	const lastSortSetting = getSetting(Settings.LASTSORT, SettingType.OPTION);
 	let hasSorted: boolean = false;
 
 	function sortThreads(o: SelectOption<ThreadSort> | undefined) {
-		console.log("is we");
 		if (selectedSort === undefined || (o === selectedSort && hasSorted)) {
-			console.log("awa");
 			return;
 		}
 
@@ -196,7 +192,7 @@
 			<CustomSelect
 				options={threadOptions}
 				fullWidth={true}
-				bind:selectedOption={selectedThread}
+				selectedOption={selectedThread}
 				callback={setThread}
 			/>
 		{:else if !isLoading}
